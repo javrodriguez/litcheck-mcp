@@ -84,6 +84,16 @@ class OutcomeTests(unittest.TestCase):
             return r(url)
         self.assertEqual(pmc.fetch_text(PAPER_PMCID, transport=bad_meta)[0], pmc.UNVERIFIABLE)
 
+    def test_open_access_without_md5_is_unverifiable(self):
+        r = replay()
+
+        def no_md5(url):
+            status, body, headers = r(url)
+            if url.endswith('.json'):
+                body = body.replace(b'.txt?md5=', b'.txt?x=')
+            return status, body, headers
+        self.assertEqual(pmc.fetch_text(PAPER_PMCID, transport=no_md5)[0], pmc.UNVERIFIABLE)
+
     def test_rejects_malformed_pmcid(self):
         for bad in ('12345', 'PMC', 'PMC12a', 'pmc123', 'PMC0'):
             with self.assertRaises(ValueError):

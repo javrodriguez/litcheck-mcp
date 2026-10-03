@@ -117,6 +117,26 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(result['status'], 'UNVERIFIABLE')
         self.assertIn('did not resolve', result['reason'])
 
+    def test_pmc_listed_paper_without_a_cloud_copy_is_never_not_retracted(self):
+        r = replay()
+        crossref_empty = b'{"status": "ok", "message": {"items": []}}'
+
+        def transport(url):
+            if 'api.crossref.org' in url:
+                return 200, crossref_empty, {}
+            if 'pmc-oa-opendata' in url:
+                return r('https://pmc-oa-opendata.s3.amazonaws.com/?list-type=2&prefix=PMC13632646.')
+            return r(url)
+        _, result = cli.retraction_for(PAPER_PMCID, transport)
+        self.assertEqual(result['status'], 'UNVERIFIABLE')
+        self.assertIn('holds no copy', result['reason'])
+
+    def test_damaged_log_is_an_input_error_not_a_crash(self):
+        with open(self.log, 'wb') as handle:
+            handle.write(b'not json\n')
+        code, out = run(['search', 'pubmed', 'x', '--log', self.log])
+        self.assertEqual(code, 2)
+
     def test_unusable_identifier_exits_two(self):
         code, out = run(['check', '--id', 'twenty-seven', '--quote', TRUE_QUOTE, '--log', self.log])
         self.assertEqual((code, out), (2, ''))

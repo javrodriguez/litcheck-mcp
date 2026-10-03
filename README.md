@@ -46,7 +46,10 @@ is verified. Every output on that page is re-derived from recorded responses by
   only if its bytes match the md5 in PMC's metadata. Matching is an exact substring search
   after a pinned normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed
   whitespace; case kept); it does not respect word boundaries, so a quote that starts or
-  ends mid-word can still be `FOUND`. Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
+  ends mid-word can still be `FOUND`. The text searched is PMC's whole plain-text file: a
+  metadata header (journal, identifiers, affiliations), the article, and its reference list,
+  so a cited work's title is `FOUND` too. Check the `paragraph` it reports, or read the
+  passage, before saying the paper itself states it. Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
   (no open-access text to check: none in PMC, PMC's copy missing, or the identifier not
   found at all; the `resolved` status and the `reason` say which; a short quote with no text
   to check is `NOT_CHECKABLE`, not `TOO_SHORT`), `UNVERIFIABLE` (a source could not be read or
@@ -58,8 +61,9 @@ is verified. Every output on that page is re-derived from recorded responses by
   reported separately). `NOT_RETRACTED_AS_OF <date>` means no retraction notice was found in
   the sources consulted, as of that date; it needs the identifier to have resolved and every
   consulted source to have answered, otherwise the status is `UNVERIFIABLE`. PMC's flag is
-  read for papers PMC lists (if their metadata cannot be read, or PMC's copy is missing, that
-  counts as a source that did not answer); a paper PMC does not hold is checked on Crossref
+  read for papers PMC lists (if their metadata cannot be read, PMC's copy is missing, or the
+  PMC Cloud Service holds no copy of a paper PMC lists, that counts as a source that did not
+  answer); a paper PMC does not hold is checked on Crossref
   alone, and a paper with no known DOI on PMC's flag alone; `sources` shows which answered.
   A PMID or PMCID outside PMC has no DOI to ask Crossref about: pass the DOI instead.
   Retraction checks are returned, not logged, except inside a `check_quote` evidence line.
@@ -111,7 +115,8 @@ line N's bytes (without its newline) must still equal the head you saved when th
 lines. litcheck has no command for that comparison yet. The chain shows order and
 integrity, not authorship: anyone who can write the file can append well-formed lines, and
 each line's timestamp is the writing machine's clock.
-A log that does not exist yet is reported as not intact (exit 1, `chain_ok: false`).
+A log that does not exist yet is reported as not intact (exit 1, `chain_ok: false`), and a
+damaged last line stops new checks and searches from being written until it is dealt with.
 
 | System | Default location |
 |---|---|

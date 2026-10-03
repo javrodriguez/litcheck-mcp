@@ -124,8 +124,10 @@ def fetch_text(pmcid, version=None, transport=None):
     outcome, info = metadata(pmcid, version, transport)
     if outcome != FETCHED:
         return outcome, info, None
-    if not info['is_pmc_openaccess'] or not info['text_md5']:
+    if not info['is_pmc_openaccess']:
         return NOT_OPEN_ACCESS, info, None
+    if not info['text_md5']:
+        return UNVERIFIABLE, info, None  # open access, but no md5 to pin the text to
     status, body, _ = _get(text_url(pmcid, version), transport)
     if status == 404:
         return MISSING_UPSTREAM, info, None

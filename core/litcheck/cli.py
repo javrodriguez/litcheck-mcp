@@ -71,8 +71,13 @@ def _pmc_metadata(pmcid, transport):
 
 def _pmc_error(pmcid, outcome, info):
     """Why PMC's retraction flag was not read, when it should have been."""
-    if pmcid and info is None and outcome in (_pmc.MISSING_UPSTREAM, _pmc.UNVERIFIABLE):
+    if not pmcid or info is not None:
+        return None
+    if outcome in (_pmc.MISSING_UPSTREAM, _pmc.UNVERIFIABLE):
         return 'the PMC metadata for %s could not be read (%s)' % (pmcid, outcome)
+    if outcome == _pmc.NOT_OPEN_ACCESS:
+        return ('PMC lists %s but the PMC Cloud Service holds no copy of it, so its '
+                'retraction flag could not be read' % pmcid)
     return None
 
 
@@ -173,7 +178,8 @@ def _check(evidence, resolved, quote_text, transport, clock):
         _pmc.NOT_OPEN_ACCESS: (NOT_CHECKABLE, 'PMC holds no open-access text for %s'),
         _pmc.MISSING_UPSTREAM: (NOT_CHECKABLE, 'the PMC Cloud Service has no copy of %s'),
         _pmc.MD5_MISMATCH: (UNVERIFIABLE, 'the text of %s did not match its pinned md5'),
-        _pmc.UNVERIFIABLE: (UNVERIFIABLE, 'the PMC Cloud Service could not be read for %s'),
+        _pmc.UNVERIFIABLE: (UNVERIFIABLE,
+                            'the PMC Cloud Service could not be read, or gave no md5, for %s'),
     }
     verdict, reason = reasons[outcome]
     evidence['verdict'] = verdict

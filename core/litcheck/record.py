@@ -56,8 +56,12 @@ def _last(path):
     lines = _read_lines(path)
     if not lines:
         return 0, ZERO, []
-    last = json.loads(lines[-1].decode('utf-8'))
-    return int(last['seq']), hashlib.sha256(lines[-1]).hexdigest(), lines
+    try:
+        last = json.loads(lines[-1].decode('utf-8'))
+        seq = int(last['seq'])
+    except (ValueError, KeyError, TypeError, UnicodeDecodeError):
+        raise LogError('the last line of %s is not a log line; run verify-log on it' % path)
+    return seq, hashlib.sha256(lines[-1]).hexdigest(), lines
 
 
 def append(path, kind, payload, clock=None):

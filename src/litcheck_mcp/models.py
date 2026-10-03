@@ -56,10 +56,12 @@ class RetractionResult(BaseModel):
 class EvidenceResult(BaseModel):
     verdict: QuoteVerdict = Field(
         description=(
-            "FOUND: the quote occurs, as a substring, in the pinned open-access text. "
+            "FOUND: the quote occurs, as a substring, in the pinned open-access text (which "
+            "includes its metadata header and reference list; see paragraph). "
             "NOT_FOUND: it does not. "
             "TOO_SHORT: under 20 characters, not searched. NOT_CHECKABLE: no open-access text "
-            "in PMC, or the identifier was not found (see resolved.status and reason). "
+            "in PMC, PMC's copy missing, or the identifier was not found (see "
+            "resolved.status and reason). "
             "UNVERIFIABLE: a source could not be read or verified, or litcheck failed (see "
             "reason); nothing was concluded."
         )
@@ -123,7 +125,8 @@ class LogStatus(BaseModel):
     first_bad_seq: int | None
     reason: str | None
     head_sha256: str | None = Field(
-        description="sha256 of the last line. The chain catches accidental and naive edits; "
+        description="sha256 of the last line's bytes (without its newline; not its own sha256 "
+        "field). The chain catches accidental and naive edits; "
         "a rewrite that recomputes every hash, or a cut-off tail, is caught only by comparing "
         "against a head hash kept elsewhere"
     )

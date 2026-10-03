@@ -38,8 +38,12 @@ server = MCPServer(
         + " Use check_quote before you cite a passage: it resolves the identifier, fetches the "
         "paper's pinned open-access text from PubMed Central (md5-verified), looks for the "
         "quote, and reports the paper's licence and retraction status. Only open-access text "
-        "can be checked; anything else, an identifier that was not found included, comes back "
-        "NOT_CHECKABLE (resolved.status and reason say which). Use search_literature and "
+        "can be checked; a paper without it (or with PMC's copy missing, or an identifier that "
+        "was not found) comes back NOT_CHECKABLE, and one whose sources could not be read or "
+        "verified comes back UNVERIFIABLE (resolved.status and reason say which). The text "
+        "searched includes the article's metadata header and reference list: check the "
+        "paragraph before saying the paper itself states a FOUND passage. "
+        "Use search_literature and "
         "citing_papers to look for prior work: every search that is sent is recorded, failed "
         "ones too, but a search can miss papers, so an empty result is not evidence that "
         "nothing exists. "
@@ -118,7 +122,9 @@ def check_quote(
     """Check whether a quoted passage appears in the paper's pinned open-access PMC text.
 
     Also reports the text's version, sha256 and licence, and the paper's retraction status,
-    and appends an evidence line to the log. Exact substring match (word boundaries are not
+    and appends an evidence line to the log. The text searched is PMC's whole plain-text file,
+    header and reference list included, so check `paragraph` before attributing a FOUND
+    passage to the paper. Exact substring match (word boundaries are not
     checked) after normalisation q1 (Unicode
     NFKC, straight quotes, one dash, collapsed whitespace; case kept). It does not judge
     whether the passage supports the claim.
