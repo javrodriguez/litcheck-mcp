@@ -1,0 +1,26 @@
+{
+  "body_sha256": "f269175e835140b3eaf5df5f576d2fc7f1a681b5a45246e2c60e5e618fb873f4",
+  "date": "2026-10-03T21:32:36Z",
+  "headers": {
+    "allow": "GET, HEAD, OPTIONS",
+    "alt-svc": "clear",
+    "connection": "close",
+    "content-length": "42455",
+    "content-security-policy": "upgrade-insecure-requests",
+    "content-type": "application/json",
+    "cross-origin-opener-policy": "same-origin",
+    "date": "Sat, 03 Oct 2026 21:32:36 GMT",
+    "referrer-policy": "same-origin",
+    "server": "nginx",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "vary": "Accept,origin,Accept-Encoding",
+    "via": "1.1 google",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "DENY",
+    "x-ua-compatible": "IE=Edge",
+    "x-xss-protection": "1; mode=block"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://www.ncbi.nlm.nih.gov/research/litsense2-api/api/sentences/?query=arteriosclerosis%20functional%20depletion%20of%20large-artery%20elasticity&rerank=true"
+}

@@ -1,0 +1,26 @@
+{
+  "body_sha256": "fabe105738115474a912f5ef55114ded0f1a4af3bf328bb73868f4a21e5f76fe",
+  "date": "2026-10-03T21:32:28Z",
+  "headers": {
+    "allow": "GET, HEAD, OPTIONS",
+    "alt-svc": "clear",
+    "connection": "close",
+    "content-length": "399",
+    "content-type": "application/json",
+    "cross-origin-opener-policy": "same-origin",
+    "date": "Sat, 03 Oct 2026 21:32:28 GMT",
+    "referrer-policy": "same-origin",
+    "server": "istio-envoy",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "vary": "Accept,Accept-Encoding",
+    "via": "1.1 google",
+    "x-content-type-options": "nosniff",
+    "x-envoy-upstream-service-time": "5",
+    "x-frame-options": "DENY",
+    "x-ua-compatible": "IE=Edge",
+    "x-xss-protection": "1; mode=block"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids=PMC12829825&idtype=pmcid&format=json"
+}

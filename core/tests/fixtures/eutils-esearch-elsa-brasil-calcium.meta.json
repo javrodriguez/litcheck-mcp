@@ -1,0 +1,29 @@
+{
+  "body_sha256": "ead02544a2b9bea3b3f0defdba36f32d5d5a73a7d9e49a78c83a1b77bb744d34",
+  "date": "2026-10-03T21:32:36Z",
+  "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "X-RateLimit-Limit,X-RateLimit-Remaining",
+    "alt-svc": "clear",
+    "cache-control": "private",
+    "connection": "close",
+    "content-security-policy": "upgrade-insecure-requests",
+    "content-type": "application/json; charset=UTF-8",
+    "date": "Sat, 03 Oct 2026 21:32:36 GMT",
+    "ncbi-phid": "1D34D4A7EA49D285000041241DE09393.1.1.m_1",
+    "ncbi-sid": "4ECD21A077F6AC8C_55BASID",
+    "referrer-policy": "origin-when-cross-origin",
+    "server": "Finatra",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "via": "1.1 google",
+    "x-ratelimit-limit": "3",
+    "x-ratelimit-remaining": "2",
+    "x-ua-compatible": "IE=Edge",
+    "x-xss-protection": "1; mode=block"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=ELSA-Brasil%20coronary%20artery%20calcium&retmax=5&retmode=json&datetype=pdat&mindate=2015&maxdate=2017"
+}

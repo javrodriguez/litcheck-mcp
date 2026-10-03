@@ -1,0 +1,29 @@
+{
+  "body_sha256": "cbbad272e6a0d32593e473adf776e09afc2e32be0349fedf9accc341acfa0a52",
+  "date": "2026-10-03T21:32:50Z",
+  "headers": {
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "X-RateLimit-Limit,X-RateLimit-Remaining",
+    "alt-svc": "clear",
+    "cache-control": "private",
+    "connection": "close",
+    "content-security-policy": "upgrade-insecure-requests",
+    "content-type": "application/json; charset=UTF-8",
+    "date": "Sat, 03 Oct 2026 21:32:50 GMT",
+    "ncbi-phid": "1D34D4A7EA49D285000033242A2703AF.1.1.m_1",
+    "ncbi-sid": "D4E7001BFF360121_44A0SID",
+    "referrer-policy": "origin-when-cross-origin",
+    "server": "Finatra",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "Accept-Encoding",
+    "via": "1.1 google",
+    "x-ratelimit-limit": "3",
+    "x-ratelimit-remaining": "2",
+    "x-ua-compatible": "IE=Edge",
+    "x-xss-protection": "1; mode=block"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=28647689,28302272,27901176,27488360,27236256&retmode=json"
+}

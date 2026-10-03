@@ -1,0 +1,21 @@
+{
+  "body_sha256": "e55f38fe81f85325efd03351b3ffd660b513c318b213c36fc7634fde5292188f",
+  "date": "2026-10-03T21:32:25Z",
+  "headers": {
+    "accept-ranges": "bytes",
+    "connection": "close",
+    "content-length": "888",
+    "content-type": "binary/octet-stream",
+    "date": "Sat, 03 Oct 2026 21:32:25 GMT",
+    "etag": "\"d150bab5ef2e8b7b522a7990170140a0\"",
+    "last-modified": "Sat, 27 Jun 2026 09:58:28 GMT",
+    "server": "AmazonS3",
+    "x-amz-id-2": "2dxHondimlx1Omqm/PGtCp/h2bZNr+0gSGAQ0xc3+5/4F7q+uuP7WaY6iB3zSuEBfJqy6u3gtfw=",
+    "x-amz-meta-license": "CC BY",
+    "x-amz-request-id": "2CDMJHRNZ97NAVC7",
+    "x-amz-server-side-encryption": "AES256"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://pmc-oa-opendata.s3.amazonaws.com/PMC10496602.1/PMC10496602.1.json"
+}
