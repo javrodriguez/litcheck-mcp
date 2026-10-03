@@ -81,8 +81,11 @@ def normalise(kind, value):
 
 
 def _empty(kind, value):
+    # a DOI that was asked about stays known even when no service maps it, so a
+    # retraction check can still ask Crossref about it
     return {'kind': kind, 'requested': value, 'status': UNVERIFIABLE,
-            'pmid': None, 'pmcid': None, 'doi': None, 'source': None, 'reason': None}
+            'pmid': None, 'pmcid': None, 'doi': value if kind == 'doi' else None,
+            'source': None, 'reason': None}
 
 
 def idconv_url(kind, values):

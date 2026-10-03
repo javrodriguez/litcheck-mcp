@@ -79,10 +79,12 @@ def _fetch_json(url, transport):
 
 
 def _ids(items):
+    """One id per returned item, so the log shows how many came back."""
     out = []
     for item in items:
-        out.append(item.get('pmcid') or item.get('pmid') or item.get('doi'))
-    return [i for i in out if i]
+        out.append(item.get('pmcid') or item.get('pmid') or item.get('doi')
+                   or item.get('openalex_id') or item.get('epmc_id') or '(no id)')
+    return out
 
 
 def _finish(engine, endpoint, query, params, status, items, hit_count, digest, reason,
@@ -124,7 +126,8 @@ def europe_pmc(query, page_size=25, result_type='lite', sort_by_date=False, tran
                 items.append(_item('europe_pmc', pmid=_str(r.get('pmid')),
                                    pmcid=_str(r.get('pmcid')),
                                    doi=_str(r.get('doi')) and r['doi'].lower(),
-                                   title=_str(r.get('title')), year=_str(r.get('pubYear'))))
+                                   title=_str(r.get('title')), year=_str(r.get('pubYear')),
+                                   epmc_id='%s:%s' % (r.get('source'), r.get('id'))))
             status = SEARCHED
         except (KeyError, TypeError, ValueError, AttributeError):
             items, hits, reason = [], None, 'an unexpected response shape'

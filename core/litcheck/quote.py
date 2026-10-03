@@ -53,13 +53,13 @@ def _paragraph_starts(text):
     starts = []
     pieces = []
     cursor = 0
-    for index, raw in enumerate(PARAGRAPH_BREAK.split(text)):
+    for raw in PARAGRAPH_BREAK.split(text):
         piece = normalise(raw)
         if not piece:
             continue
         if pieces:
             cursor += 1
-        starts.append((cursor, index))
+        starts.append((cursor, len(pieces)))
         pieces.append(piece)
         cursor += len(piece)
     if ' '.join(pieces) != normalise(text):

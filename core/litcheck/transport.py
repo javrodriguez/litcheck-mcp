@@ -73,7 +73,11 @@ THROTTLE = Throttle()
 
 
 def contact():
+    """LITCHECK_CONTACT, or None. A value with control characters is ignored,
+    since it would be rejected as a header and echoed in the error."""
     value = os.environ.get(CONTACT_ENV, '').strip()
+    if any(ord(c) < 32 or ord(c) == 127 for c in value):
+        return None
     return value or None
 
 

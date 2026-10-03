@@ -64,6 +64,11 @@ class SearchTests(unittest.TestCase):
         self.assertNotIn('email', line['params'])
         self.assertNotIn('tool', line['params'])
 
+    def test_every_returned_item_gets_a_logged_id(self):
+        self.assertEqual(search._ids([{'doi': '10.1/x'}, {'openalex_id': 'W1'},
+                                      {'epmc_id': 'AGR:1'}, {}]),
+                         ['10.1/x', 'W1', 'AGR:1', '(no id)'])
+
     def test_pubmed_needs_both_dates(self):
         with self.assertRaises(search.SearchError):
             search.pubmed(PUBMED_TERM, mindate='2015', transport=replay())

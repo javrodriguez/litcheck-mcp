@@ -82,6 +82,10 @@ class CheckTests(unittest.TestCase):
         result = quote.check('with a long enough phrase', text)
         self.assertEqual((result['verdict'], result['paragraph']), (quote.FOUND, 1))
 
+    def test_paragraph_index_skips_empty_blocks(self):
+        text = 'first block here\n\n\n\nsecond block with a long enough phrase'
+        self.assertEqual(quote.check('with a long enough phrase', text)['paragraph'], 1)
+
     def test_not_checkable_shape(self):
         self.assertEqual(quote.not_checkable()['verdict'], quote.NOT_CHECKABLE)
 

@@ -94,6 +94,7 @@ class SearchItem(BaseModel):
     section: str | None = None
     score: float | None = None
     openalex_id: str | None = None
+    epmc_id: str | None = Field(default=None, description="Europe PMC: source:id")
 
 
 class SearchResult(BaseModel):

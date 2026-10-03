@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/javrodriguez/litcheck-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/javrodriguez/litcheck-mcp/actions/workflows/ci.yml)
 
-**A prior-work checker for scientists and their AI agents.** litcheck checks quoted passages against pinned open-access PubMed Central texts and checks retraction status; every search it runs goes into an append-only, hash-chained log.
+**A prior-work checker for scientists and their AI agents.** litcheck checks quoted passages against pinned open-access PubMed Central texts and checks retraction status; every quote check and every search it runs goes into an append-only, hash-chained log.
 
 > It never tells you a hypothesis is novel. It gives you a dated record of what was searched and what was found, and, where open-access text exists, checks whether each quoted passage appears in it.
 
@@ -27,7 +27,8 @@ codex mcp add litcheck -- uv --directory /ABS/PATH/TO/litcheck-mcp run litcheck-
 ```
 
 Replace `/ABS/PATH/TO/litcheck-mcp` with the clone's absolute path. The first launch installs
-the server's dependencies (`mcp`, `pydantic`) into the clone's own environment.
+the server's dependencies (`mcp`, `pydantic`, and the small development group: pytest, ruff,
+mypy) into the clone's own `.venv`.
 
 ## Worked example
 
@@ -44,8 +45,9 @@ is verified. Every output on that page is re-derived from recorded responses by
   only if its bytes match the md5 in PMC's metadata. Matching is exact after a pinned
   normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed whitespace; case
   kept). Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
-  (no open-access text in PMC, including when the identifier was not found at all; the
-  `resolved` status and the `reason` say which), `UNVERIFIABLE` (a source could not be read or
+  (no open-access text to check: none in PMC, PMC's copy missing, or the identifier not
+  found at all; the `resolved` status and the `reason` say which; a short quote with no text
+  to check is `NOT_CHECKABLE`, not `TOO_SHORT`), `UNVERIFIABLE` (a source could not be read or
   verified, or litcheck itself failed; the `reason` says which).
 - **Only open-access full text can be quote-checked.** Paywalled papers, and author
   manuscripts PMC does not mark as open access, come back `NOT_CHECKABLE`.
@@ -54,7 +56,9 @@ is verified. Every output on that page is re-derived from recorded responses by
   reported separately). `NOT_RETRACTED_AS_OF <date>` needs every consulted source to have
   answered; otherwise the status is `UNVERIFIABLE`. PMC's flag is consulted for papers in the
   PMC Cloud Service (if their metadata cannot be read, that counts as a source that did not
-  answer); a paper with no copy there is checked on Crossref alone, and `sources` shows it.
+  answer); a paper with no copy there is checked on Crossref alone, and a paper with no known
+  DOI on PMC's flag alone; `sources` shows which answered. Retraction checks are returned, not
+  logged, except inside a `check_quote` evidence line.
 - **No support verdict is computed.** Whether a passage supports, contradicts or is absent
   from a claim is recorded only when a person or a named judge gives it (`record_support`).
 - **Searches are recorded, and a search can miss papers.** Europe PMC, LitSense 2.0, PubMed
@@ -70,7 +74,7 @@ is verified. Every output on that page is re-derived from recorded responses by
 |---|---|
 | `check_quote` | resolve the paper, fetch its pinned open-access text, look for the quote; licence and retraction status alongside |
 | `resolve_identifier` | DOI, PMID or PMCID to the other two (PMC ID converter, Europe PMC fallback for DOIs only: a PMID or PMCID outside PMC comes back `NOT_FOUND`, which does not mean it does not exist) |
-| `retraction_status` | PMC's flag and Crossref's notices, with the date and response hash of each check |
+| `retraction_status` | PMC's flag and Crossref's notices, with the date and response hash of each check (returned, not logged) |
 | `search_literature` | one recorded search on `europe_pmc`, `litsense` or `pubmed` |
 | `citing_papers` | works citing a paper, from OpenAlex, recorded |
 | `verify_log` | re-walk the log's hash chain |
@@ -96,7 +100,9 @@ the sha256 of the previous line, its payload, and its own sha256. Nothing in lit
 a line. `verify-log` (or `verify_log`) reports the first line that does not fit, which catches
 accidental and naive edits. The hashes are not keyed: someone who rewrites a line and
 recomputes every hash after it, or cuts off the tail, leaves a chain that checks out. To
-detect that, keep the head hash `verify-log` prints somewhere else and compare it later.
+detect that, keep the head hash `verify-log` prints somewhere else; later, the sha256 of
+line N's bytes (without its newline) must still equal the head you saved when the log had N
+lines. litcheck has no command for that comparison yet.
 A log that does not exist yet is reported as not intact (exit 1, `chain_ok: false`).
 
 | System | Default location |
@@ -105,20 +111,25 @@ A log that does not exist yet is reported as not intact (exit 1, `chain_ok: fals
 | macOS | `~/Library/Application Support/litcheck/log.jsonl` |
 | Linux | `$XDG_DATA_HOME/litcheck/log.jsonl`, else `~/.local/share/litcheck/log.jsonl` |
 
-Set `LITCHECK_LOG` to put it elsewhere (for one project, say); `--log` does the same per call.
+Set `LITCHECK_LOG` to put it elsewhere (for one project, say); `--log` does the same per call
+(`verify-log` takes the path as its argument). Only `check_quote`, the searches and
+`record_support` write to the log; `resolve_identifier` and `retraction_status` do not.
 
 ## Etiquette
 
 Set `LITCHECK_CONTACT` to an address the services can reach you at. litcheck sends it only
-with each request (in the User-Agent and as the `email`/`mailto` parameter NCBI, Europe PMC,
-Crossref and OpenAlex ask for); it is never written to the log or to a recorded fixture. With
+with each request: in the User-Agent, to every host it calls (the PMC bucket on Amazon S3
+included), and as the `email`/`mailto` parameter NCBI, Europe PMC, Crossref and OpenAlex ask
+for. It is not part of any URL it stores, and it is never written to a recorded fixture; a
+value containing control characters is ignored. With
 Claude Code, add `-e LITCHECK_CONTACT=you@example.org` before `--`; with Codex,
 `--env LITCHECK_CONTACT=you@example.org`.
 
-Rate limits are honoured per host: NCBI E-utilities and the ID converter 3 requests a second
+Rate limits are honoured per host, within one process (separate CLI runs or servers do
+not share the spacing): NCBI E-utilities and the ID converter 3 requests a second
 (no API key), LitSense one a second, Europe PMC 5 a second, OpenAlex and Crossref 10 a second.
 Answers 429, 500, 502, 503 and 504, and network errors, are retried at most twice, with
-backoff (honouring a `Retry-After` of up to 10 seconds); other answers are not retried. A call
+backoff (honouring a `Retry-After` in seconds, up to 10); other answers are not retried. A call
 that still fails makes the result `UNVERIFIABLE`.
 
 ## Tests

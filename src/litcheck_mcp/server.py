@@ -105,7 +105,10 @@ def check_quote(
     identifier: _IDENTIFIER,
     quote: Annotated[
         str,
-        Field(description="The passage exactly as you would quote it (20 characters or more)"),
+        Field(
+            description="The passage exactly as you would quote it (20 characters or more; "
+            "shorter is TOO_SHORT when there is text to check)"
+        ),
     ],
     claim: Annotated[
         str | None,
@@ -180,8 +183,8 @@ def retraction_status(identifier: _IDENTIFIER) -> models.RetractionResult:
     Retraction, withdrawal and removal notices count; corrections do not; an expression of
     concern is reported separately. NOT_RETRACTED_AS_OF needs every consulted source to have
     answered, and is dated; if a source could not be read the status is UNVERIFIABLE. A paper
-    with no copy in the PMC Cloud Service is checked on Crossref alone; `sources` shows which
-    sources answered.
+    with no copy in the PMC Cloud Service is checked on Crossref alone, and one with no known
+    DOI on PMC's flag alone; `sources` shows which answered. Not written to the log.
     """
     _, data = _run(cli.retraction_for, identifier=identifier, transport=transport, clock=clock)
     return _retraction(identifier, data)
@@ -232,7 +235,8 @@ def search_literature(
 ) -> models.SearchResult:
     """Run one literature search and record it, with its response hash, in the log.
 
-    hit_count is what the engine reported; items are the first `limit` of them. A search can
+    hit_count is what the engine reported (for litsense, the number of results it returned,
+    at most 100); items are the first `limit` of them. A search can
     miss papers: status SEARCHED with few items is a record of this query, not of the field.
     """
     return _search(engine, query, limit)

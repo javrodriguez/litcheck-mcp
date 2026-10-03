@@ -140,6 +140,17 @@ class ContactTests(unittest.TestCase):
         self.assertIn('mailto=someone%40example.org', request.full_url)
         self.assertIn('mailto:someone@example.org', request.get_header('User-agent'))
 
+    def test_contact_with_control_characters_is_ignored(self):
+        old = os.environ.get(transport.CONTACT_ENV)
+        os.environ[transport.CONTACT_ENV] = 'a@example.org\nX-Injected: 1'
+        try:
+            self.assertIsNone(transport.contact())
+        finally:
+            if old is None:
+                del os.environ[transport.CONTACT_ENV]
+            else:
+                os.environ[transport.CONTACT_ENV] = old
+
     def test_user_agent_names_the_project(self):
         self.assertIn('litcheck', transport.user_agent())
         self.assertNotIn('mailto', transport.user_agent())

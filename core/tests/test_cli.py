@@ -93,6 +93,17 @@ class CheckTests(unittest.TestCase):
         self.assertIsNone(pmc_source['retracted'])
         self.assertIn('could not be read', pmc_source['error'])
 
+    def test_a_doi_nobody_maps_is_still_asked_of_crossref(self):
+        asked = []
+
+        def transport(url):
+            asked.append(url)
+            return 503, b'', {}
+        resolved, result = cli.retraction_for('10.1234/abc', transport)
+        self.assertEqual(resolved['doi'], '10.1234/abc')
+        self.assertTrue(any('api.crossref.org' in u and '10.1234/abc' in u for u in asked))
+        self.assertEqual([s['source'] for s in result['sources']], ['crossref'])
+
     def test_unusable_identifier_exits_two(self):
         code, out = run(['check', '--id', 'twenty-seven', '--quote', TRUE_QUOTE, '--log', self.log])
         self.assertEqual((code, out), (2, ''))
