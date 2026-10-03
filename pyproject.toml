@@ -1,0 +1,52 @@
+[project]
+name = "litcheck-mcp"
+version = "0.1.0"
+description = "A prior-work checker for scientists and their AI agents: quotes checked against pinned open-access PMC texts, retraction status, and a hash-chained log of every search."
+readme = "README.md"
+requires-python = ">=3.12,<3.14"  # the MCP server; the core itself runs on Python 3.6+
+license = { text = "MIT" }
+authors = [{ name = "Javier Rodríguez Hernáez" }]
+keywords = ["mcp", "pubmed", "pmc", "literature", "retraction", "citations", "model-context-protocol"]
+dependencies = [
+    "mcp>=2.1,<3",
+    "pydantic>=2.0",
+]
+
+[project.urls]
+Repository = "https://github.com/javrodriguez/litcheck-mcp"
+
+[project.scripts]
+litcheck-mcp = "litcheck_mcp:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.6",
+    "mypy>=1.10",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["core/litcheck", "src/litcheck_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+
+[[tool.mypy.overrides]]
+module = ["litcheck", "litcheck.*"]
+ignore_missing_imports = true  # the core is untyped by design (Python 3.6 grammar, no hints)

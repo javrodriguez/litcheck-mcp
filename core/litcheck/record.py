@@ -160,7 +160,8 @@ def _line_problem(raw, seq, prev):
     if not isinstance(line, dict):
         return 'not a JSON object'
     if line.get('seq') != seq:
-        return 'seq is %r, expected %d (a line was removed, added or moved)' % (line.get('seq'), seq)
+        return ('seq is %r, expected %d (a line was removed, added or moved)'
+                % (line.get('seq'), seq))
     if line.get('prev_sha256') != prev:
         return 'prev_sha256 does not match the line before it'
     if line.get('kind') not in KINDS:

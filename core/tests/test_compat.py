@@ -148,13 +148,14 @@ class CompatTests(unittest.TestCase):
             'from __future__ import annotations\n': 'annotations',
             'def f(x: list[int]): pass\n': 'builtin-subscript',
             'def f(x: int | None): pass\n': 'X | Y',
-            'def f(a, /, b): pass\n': 'positional-only',
             'x = "a".removeprefix("b")\n': 'removeprefix',
             'import datetime\nx = datetime.UTC\n': '.UTC',
-            'x = 1\ny = f"{x=}"\n': 'f-string',
+            'x = 1\ny = f"{x}"\n': 'f-string',
         }
-        if sys.version_info >= (3, 8):
+        if sys.version_info >= (3, 8):  # newer syntax only parses on a newer interpreter
             samples['if (y := 1): pass\n'] = 'walrus'
+            samples['def f(a, /, b): pass\n'] = 'positional-only'
+            samples['x = 1\ny = f"{x=}"\n'] = 'f-string'
         if sys.version_info >= (3, 10):
             samples['match x:\n    case 1: pass\n'] = 'match'
         for source, expected in samples.items():

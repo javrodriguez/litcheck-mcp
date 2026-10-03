@@ -79,7 +79,9 @@ class OutcomeTests(unittest.TestCase):
         r = replay()
 
         def bad_meta(url):
-            return (200, b'{"pmcid": "PMC1", "version": 1}', {}) if url.endswith('.json') else r(url)
+            if url.endswith('.json'):
+                return 200, b'{"pmcid": "PMC1", "version": 1}', {}
+            return r(url)
         self.assertEqual(pmc.fetch_text(PAPER_PMCID, transport=bad_meta)[0], pmc.UNVERIFIABLE)
 
     def test_rejects_malformed_pmcid(self):

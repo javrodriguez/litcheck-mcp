@@ -151,7 +151,8 @@ def live_transport(url, timeout=20, throttle=None, sleep=None, opener=None):
         throttle.wait(host)
         try:
             with opener(request, timeout=timeout) as response:
-                status, body, headers = response.getcode(), response.read(), _headers(response.headers)
+                status, body = response.getcode(), response.read()
+                headers = _headers(response.headers)
         except urllib.error.HTTPError as exc:
             status, body, headers = exc.code, exc.read(), _headers(exc.headers or {})
         except (urllib.error.URLError, OSError):

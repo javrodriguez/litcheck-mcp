@@ -197,7 +197,7 @@ def convert(ids, transport=None):
         for start in range(0, len(values), BATCH):
             for value, result in _idconv(kind, values[start:start + BATCH], transport).items():
                 results[(kind, value)] = result
-    for (kind, value), result in sorted(results.items()):
+    for (kind, _), result in sorted(results.items()):
         if kind == 'doi' and result['status'] == NOT_FOUND:
             _epmc_doi(result, transport)
     return [results[(kind, value)] for kind, value in ids]

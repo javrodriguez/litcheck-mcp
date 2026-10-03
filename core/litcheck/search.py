@@ -154,7 +154,8 @@ def litsense(query, kind='sentences', rerank=True, limit=None, transport=None, l
             for r in payload:
                 pmcid = _str(r.get('pmcid'))
                 items.append(_item('litsense', pmid=_str(r.get('pmid')), pmcid=pmcid,
-                                   text=_str((r.get('text') or '').strip()), section=_str(r.get('section')),
+                                   text=_str((r.get('text') or '').strip()),
+                                   section=_str(r.get('section')),
                                    score=r.get('score')))
             status = SEARCHED
         except (KeyError, TypeError, ValueError, AttributeError):

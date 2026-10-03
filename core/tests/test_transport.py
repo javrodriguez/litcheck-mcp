@@ -109,17 +109,19 @@ class ContactTests(unittest.TestCase):
 
     def test_with_contact_per_host(self):
         add = transport.with_contact
+        who = 'a@example.org'
         self.assertIn('tool=litcheck', add('https://eutils.ncbi.nlm.nih.gov/x?a=1'))
         self.assertNotIn('email', add('https://eutils.ncbi.nlm.nih.gov/x?a=1'))
-        self.assertIn('email=a%40example.org', add('https://eutils.ncbi.nlm.nih.gov/x?a=1', 'a@example.org'))
-        self.assertIn('email=a%40example.org', add('https://www.ebi.ac.uk/x?a=1', 'a@example.org'))
-        self.assertIn('mailto=a%40example.org', add('https://api.crossref.org/v1/works?a=1', 'a@example.org'))
-        self.assertIn('mailto=a%40example.org', add('https://api.openalex.org/works?a=1', 'a@example.org'))
+        self.assertIn('email=a%40example.org', add('https://eutils.ncbi.nlm.nih.gov/x?a=1', who))
+        self.assertIn('email=a%40example.org', add('https://www.ebi.ac.uk/x?a=1', who))
+        self.assertIn('mailto=a%40example.org', add('https://api.crossref.org/v1/works?a=1', who))
+        self.assertIn('mailto=a%40example.org', add('https://api.openalex.org/works?a=1', who))
         self.assertEqual(add('https://pmc-oa-opendata.s3.amazonaws.com/a.json', 'a@example.org'),
                          'https://pmc-oa-opendata.s3.amazonaws.com/a.json')
 
     def test_round_trip_is_stable(self):
-        url = transport.build_url('https://www.ebi.ac.uk/x', [('query', 'DOI:"10.1/a(b)"'), ('n', '1')])
+        url = transport.build_url('https://www.ebi.ac.uk/x',
+                                  [('query', 'DOI:"10.1/a(b)"'), ('n', '1')])
         self.assertEqual(transport.strip_contact(transport.with_contact(url, 'a@example.org')), url)
 
     def test_contact_only_at_send_time(self):

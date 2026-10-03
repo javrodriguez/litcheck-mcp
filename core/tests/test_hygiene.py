@@ -13,7 +13,8 @@ from tests import REPO
 
 EMAIL = re.compile(br'[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})')
 ALLOWED_DOMAINS = (b'noreply.github.com', b'example.org')
-HOME_PATHS = re.compile(br'/Use' br'rs/[A-Za-z]|/ho' br'me/[A-Za-z]|[A-Za-z]:\\\\?Use' br'rs\\\\?[A-Za-z]')
+HOME_PATHS = re.compile(br'/Use' br'rs/[A-Za-z]|/ho' br'me/[A-Za-z]|'
+                        br'[A-Za-z]:\\\\?Use' br'rs\\\\?[A-Za-z]')
 SKIP_DIRS = {'.git', '.venv', '__pycache__', '.pytest_cache', '.ruff_cache', '.mypy_cache',
              'dist', 'build'}
 

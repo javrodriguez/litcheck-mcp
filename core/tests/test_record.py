@@ -117,7 +117,8 @@ class RecordTests(unittest.TestCase):
         record.append(self.path, 'search', record.search_payload(
             'pubmed', 'https://e', 'q', {}, 'SEARCHED', None, 0, []))
         line = record.annotate(self.path, 1, 'supports', ' A. Reader ')
-        self.assertEqual((line['target_seq'], line['support'], line['by']), (1, 'supports', 'A. Reader'))
+        self.assertEqual((line['target_seq'], line['support'], line['by']),
+                         (1, 'supports', 'A. Reader'))
         for args in ((1, 'proves', 'A. Reader'), (1, 'supports', ''), (99, 'absent', 'A. Reader'),
                      (3, 'absent', 'A. Reader'), (True, 'absent', 'A. Reader')):
             with self.assertRaises(record.LogError):

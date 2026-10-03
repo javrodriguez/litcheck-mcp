@@ -1,0 +1,8 @@
+# The core keeps Python 3.6 grammar (GARS vendors it onto a 3.6.8 cluster), so
+# ruff must never "upgrade" it: no f-strings, no datetime.UTC, no newer syntax.
+extend = "../pyproject.toml"
+target-version = "py37"
+
+[lint]
+select = ["E", "F", "W", "B"]
+ignore = ["B904"]
