@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+type: software
+message: "If you use this software, please cite it as below."
+title: "litcheck-mcp"
+abstract: "A prior-work checker for scientists and their AI agents: it checks quoted passages against pinned open-access PubMed Central texts, checks retraction status, and keeps an append-only, hash-chained log of every search."
+authors:
+  - family-names: "Rodríguez Hernáez"
+    given-names: "Javier"
+repository-code: "https://github.com/javrodriguez/litcheck-mcp"
+license: MIT
+version: "0.1.0"

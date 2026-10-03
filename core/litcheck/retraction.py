@@ -63,8 +63,8 @@ def crossref_source(doi, transport=None, clock=None):
     try:
         status, body, headers = _transport.get_transport(transport)(url)
     except Exception as exc:
-        # no response, so no check happened; only a pinned clock gives a time
-        entry['checked_at'] = clock() if clock else None
+        # no response, so no check happened and no check time is claimed
+        entry['checked_at'] = None
         entry['error'] = 'Crossref could not be reached (%s)' % exc
         return entry
     entry['checked_at'] = _transport.checked_at(headers, clock)

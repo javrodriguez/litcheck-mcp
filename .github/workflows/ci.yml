@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # pyproject claims 3.12 and 3.13 for the server; CI is what proves it
+        python-version: ["3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: uv sync --dev
+      - name: Lint
+        run: uv run ruff check .
+      - name: Type-check
+        run: uv run mypy src/litcheck_mcp
+      - name: Server tests
+        run: uv run pytest -q
+      - name: Core tests
+        run: uv run python -m unittest discover -s core/tests -t core
+      - name: README and worked example
+        run: uv run python scripts/check_readme.py
+
+  core-floor:
+    # The core is vendored onto a cluster whose python3 is 3.6.8: run it there,
+    # on the runner host with docker (not a container: job, whose image would
+    # also have to run the checkout action).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Core tests on Python 3.6.8
+        run: docker run --rm -v "$PWD":/w -w /w python:3.6.8-slim python -m unittest discover -s core/tests -t core

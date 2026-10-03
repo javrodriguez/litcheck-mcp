@@ -1,0 +1,1 @@
+claude mcp add litcheck -- uv --directory /ABS/PATH/TO/litcheck-mcp run litcheck-mcp
