@@ -41,32 +41,36 @@ is verified. Every output on that page is re-derived from recorded responses by
 
 ## What it checks, and what it does not
 
-- **Quotes**, against the paper's open-access text from the
-  [PMC Cloud Service](https://pmc.ncbi.nlm.nih.gov/tools/cloud/), pinned by version and accepted
-  only if its bytes match the md5 in PMC's metadata. Matching is an exact substring search
-  after a pinned normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed
-  whitespace; case kept); it does not respect word boundaries, so a quote that starts or
-  ends mid-word can still be `FOUND`. The text searched is PMC's whole plain-text file: a
-  metadata header (journal, identifiers, affiliations), the article, and its reference list,
-  so a cited work's title is `FOUND` too. Check the `paragraph` it reports, or read the
-  passage, before saying the paper itself states it. Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
-  (no open-access text to check: none in PMC, PMC's copy missing, or the identifier not
-  found at all; the `resolved` status and the `reason` say which; a short quote with no text
-  to check is `NOT_CHECKABLE`, not `TOO_SHORT`), `UNVERIFIABLE` (a source could not be read or
-  verified, or litcheck itself failed; the `reason` says which).
+- **Quotes**, against the paper's open-access text from the [PMC Cloud
+  Service](https://pmc.ncbi.nlm.nih.gov/tools/cloud/): the latest version, recorded by version
+  number and sha256 (a later check may meet a newer version), and accepted only if its bytes
+  match the md5 in PMC's metadata. Matching is an exact substring search after a pinned
+  normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed whitespace; case
+  kept); it does not respect word boundaries, so a quote that starts or ends mid-word can
+  still be `FOUND`. The text searched is PMC's whole plain-text file: a metadata header
+  (journal, identifiers, affiliations), the article, and its reference list, so a cited work's
+  title is `FOUND` too. Paragraph breaks become single spaces, so a match can also run across
+  two blocks; `paragraph` names the block it starts in. Check it, or read the passage, before
+  saying the paper itself states it. Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20
+  characters), `NOT_CHECKABLE` (no open-access text to check: none in PMC, PMC's copy missing,
+  or the identifier not found at all; the `resolved` status and the `reason` say which; a
+  short quote with no text to check is `NOT_CHECKABLE`, not `TOO_SHORT`), `UNVERIFIABLE` (a
+  source could not be read or verified, or litcheck itself failed; the `reason` says which).
 - **Only open-access full text can be quote-checked.** Paywalled papers, and author
   manuscripts PMC does not mark as open access, come back `NOT_CHECKABLE`.
 - **Retraction status**, from PMC's `is_retracted` flag and Crossref's notices about the DOI
-  (retraction, withdrawal and removal count; corrections do not; an expression of concern is
-  reported separately). `NOT_RETRACTED_AS_OF <date>` means no retraction notice was found in
-  the sources consulted, as of that date; it needs the identifier to have resolved and every
+  (the notice records `filter=updates:<doi>` returns: retraction, withdrawal and removal
+  count; corrections do not; an expression of concern is reported separately; a retraction
+  recorded only in the paper's own `updated-by` field is not read, and this path has no
+  recorded test yet). `NOT_RETRACTED_AS_OF <date>` means no retraction notice was found in the
+  sources consulted, as of that date; it needs the identifier to have resolved and every
   consulted source to have answered, otherwise the status is `UNVERIFIABLE`. PMC's flag is
   read for papers PMC lists (if their metadata cannot be read, PMC's copy is missing, or the
   PMC Cloud Service holds no copy of a paper PMC lists, that counts as a source that did not
-  answer); a paper PMC does not hold is checked on Crossref
-  alone, and a paper with no known DOI on PMC's flag alone; `sources` shows which answered.
-  A PMID or PMCID outside PMC has no DOI to ask Crossref about: pass the DOI instead.
-  Retraction checks are returned, not logged, except inside a `check_quote` evidence line.
+  answer); a paper PMC does not hold is checked on Crossref alone, and a paper with no known
+  DOI on PMC's flag alone; `sources` shows which answered. A PMID or PMCID outside PMC has no
+  DOI to ask Crossref about: pass the DOI instead. Retraction checks are returned, not logged,
+  except inside a `check_quote` evidence line.
 - **No support verdict is computed.** Whether a passage supports, contradicts or is absent
   from a claim is recorded only when a person or a named judge gives it (`record_support`).
 - **Searches are recorded, and a search can miss papers.** Europe PMC, LitSense 2.0, PubMed
@@ -92,7 +96,8 @@ is verified. Every output on that page is re-derived from recorded responses by
 
 The core is standard-library Python that runs on Python 3.6 or newer, with no install
 (`./litcheck` is a POSIX shell wrapper; on Windows run `python -m litcheck` with `core` on
-`PYTHONPATH`, and note that appends to the log are not locked there against a second writer):
+`PYTHONPATH`, and note that appends to the log are not locked there, so two writers, including
+concurrent calls to the MCP server on Windows, can break the chain):
 
 ```bash
 ./litcheck check --id PMC10496602 --quote "Arteriosclerosis consists of functional depletion of large-artery elasticity."
