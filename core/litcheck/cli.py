@@ -69,18 +69,26 @@ def _pmc_metadata(pmcid, transport):
     return _pmc.metadata(pmcid, found[-1], transport)
 
 
+def _pmc_error(pmcid, outcome, info):
+    """Why PMC's retraction flag was not read, when it should have been."""
+    if pmcid and info is None and outcome in (_pmc.MISSING_UPSTREAM, _pmc.UNVERIFIABLE):
+        return 'the PMC metadata for %s could not be read (%s)' % (pmcid, outcome)
+    return None
+
+
 def retraction_for(identifier, transport=None, clock=None):
     """(resolved, retraction) for an identifier, without fetching any text."""
     resolved = resolve_identifier(identifier, transport)
-    info = None
+    info, outcome = None, None
     if resolved['pmcid']:
-        _, info = _pmc_metadata(resolved['pmcid'], transport)
+        outcome, info = _pmc_metadata(resolved['pmcid'], transport)
     doi = resolved['doi'] or (info or {}).get('doi')
     if resolved['status'] == _ids.UNVERIFIABLE and not doi and info is None:
         result = _retraction.status(None, None, transport, clock)
         result['reason'] = 'the identifier could not be resolved: %s' % resolved['reason']
         return resolved, result
-    return resolved, _retraction.status(doi, info, transport, clock)
+    return resolved, _retraction.status(doi, info, transport, clock,
+                                        _pmc_error(resolved['pmcid'], outcome, info))
 
 
 def run_check(identifier, quote, claim=None, transport=None, log=None, clock=None):
@@ -126,7 +134,8 @@ def _check(evidence, resolved, quote_text, transport, clock):
         outcome, info, body = _pmc.fetch_text(resolved['pmcid'], None, transport)
         evidence['pmc'] = _pmc_block(outcome, info)
     doi = resolved['doi'] or (info or {}).get('doi')
-    evidence['retraction'] = _retraction.status(doi, info, transport, clock)
+    evidence['retraction'] = _retraction.status(doi, info, transport, clock,
+                                                _pmc_error(resolved['pmcid'], outcome, info))
     if resolved['status'] == _ids.UNVERIFIABLE:
         evidence['verdict'] = UNVERIFIABLE
         evidence['reason'] = 'the identifier could not be resolved: %s' % resolved['reason']

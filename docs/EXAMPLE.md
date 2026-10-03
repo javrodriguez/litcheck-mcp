@@ -26,8 +26,8 @@ The quote: *"Arteriosclerosis consists of functional depletion of large-artery e
 The core needs only Python 3.6 or newer; `./litcheck` runs it from a clone.
 
 A true quote is `FOUND`. The offsets are character positions in the normalised text
-(normalisation `q1`), and the paragraph is counted in blank-line-separated blocks of the
-PMC text, its header blocks included:
+(normalisation `q1`), and the paragraph is a 0-based index of blank-line-separated blocks of
+the PMC text, its header blocks included (block 0 is the journal header):
 
 <!-- output: cli-found -->
 ```text

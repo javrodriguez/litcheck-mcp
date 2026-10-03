@@ -250,10 +250,12 @@ def citing(openalex_id_or_doi, per_page=25, transport=None, log=None, clock=None
     params = None
     if lookup:
         payload, digest, reason = _fetch_json(lookup, transport)
-        if payload is not None:
+        if isinstance(payload, dict):
             work_id = _strip_prefix(payload.get('id'), ('https://openalex.org/',))
             if not work_id:
                 reason = 'OpenAlex returned no work id for the DOI'
+        elif payload is not None:
+            reason = 'an unexpected response shape for the DOI lookup'
     if work_id:
         params = [('filter', 'cites:' + work_id), ('per_page', str(per_page))]
         payload, digest, reason = _fetch_json(_transport.build_url(OPENALEX_WORKS, params),

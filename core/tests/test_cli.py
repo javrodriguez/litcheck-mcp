@@ -80,6 +80,19 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(evidence['verdict'], 'UNVERIFIABLE')
         self.assertEqual(code, 1)
 
+    def test_unreadable_pmc_bucket_is_never_not_retracted(self):
+        r = replay()
+
+        def bucket_down(url):
+            if 'pmc-oa-opendata' in url:
+                return 503, b'', {}
+            return r(url)
+        _, result = cli.retraction_for(PAPER_PMCID, bucket_down)
+        self.assertEqual(result['status'], 'UNVERIFIABLE')
+        pmc_source = [s for s in result['sources'] if s['source'] == 'pmc'][0]
+        self.assertIsNone(pmc_source['retracted'])
+        self.assertIn('could not be read', pmc_source['error'])
+
     def test_unusable_identifier_exits_two(self):
         code, out = run(['check', '--id', 'twenty-seven', '--quote', TRUE_QUOTE, '--log', self.log])
         self.assertEqual((code, out), (2, ''))

@@ -101,11 +101,25 @@ def crossref_source(doi, transport=None, clock=None):
     return entry
 
 
-def status(doi=None, pmc_info=None, transport=None, clock=None):
-    """{status, as_of, concern, sources, reason} for a DOI and/or PMC info."""
+def pmc_failed_source(reason):
+    """A pmc source that could not be read: it blocks NOT_RETRACTED_AS_OF."""
+    return {'source': 'pmc', 'url': None, 'checked_at': None, 'response_sha256': None,
+            'retracted': None, 'concern': False, 'notices': [], 'error': reason}
+
+
+def status(doi=None, pmc_info=None, transport=None, clock=None, pmc_error=None):
+    """{status, as_of, concern, sources, reason} for a DOI and/or PMC info.
+
+    `pmc_error` names why PMC's metadata could not be read for an article that
+    is in PMC; that source then counts as unanswered. An article with no copy
+    in the PMC Cloud Service has no PMC flag to read and is checked on Crossref
+    alone, which `sources` shows.
+    """
     sources = []
     if pmc_info is not None:
         sources.append(pmc_source(pmc_info, clock))
+    elif pmc_error:
+        sources.append(pmc_failed_source(pmc_error))
     if doi:
         sources.append(crossref_source(doi, transport, clock))
     result = {'status': UNVERIFIABLE, 'as_of': None, 'concern': False,

@@ -17,7 +17,10 @@ Support = Literal["supports", "contradicts", "absent"]
 
 class ResolvedIds(BaseModel):
     identifier: str = Field(description="The identifier as it was given")
-    status: ResolveStatus
+    status: ResolveStatus = Field(
+        description="NOT_FOUND: not in PubMed Central (and, for a DOI, not in Europe PMC); a "
+        "PMID or PMCID is not looked up elsewhere, so NOT_FOUND does not mean it does not exist"
+    )
     pmid: str | None
     pmcid: str | None
     doi: str | None
@@ -52,7 +55,9 @@ class EvidenceResult(BaseModel):
         description=(
             "FOUND: the quote occurs in the pinned open-access text. NOT_FOUND: it does not. "
             "TOO_SHORT: under 20 characters, not searched. NOT_CHECKABLE: no open-access text "
-            "exists in PMC. UNVERIFIABLE: a source could not be read; nothing was concluded."
+            "in PMC, or the identifier was not found (see resolved.status and reason). "
+            "UNVERIFIABLE: a source could not be read or verified, or litcheck failed (see "
+            "reason); nothing was concluded."
         )
     )
     reason: str | None
@@ -70,7 +75,9 @@ class EvidenceResult(BaseModel):
     quote_offsets: list[int] | None = Field(
         description="[start, end) of the match in the normalised text"
     )
-    paragraph: int | None = Field(description="Index of the blank-line-separated paragraph")
+    paragraph: int | None = Field(
+        description="0-based index of the blank-line-separated block of the text"
+    )
     casefold_found: bool | None = Field(description="The quote occurs when case is ignored")
     log_seq: int | None
     log_path: str
@@ -111,7 +118,9 @@ class LogStatus(BaseModel):
     first_bad_seq: int | None
     reason: str | None
     head_sha256: str | None = Field(
-        description="sha256 of the last line; keep it elsewhere to detect a cut-off tail later"
+        description="sha256 of the last line. The chain catches accidental and naive edits; "
+        "a rewrite that recomputes every hash, or a cut-off tail, is caught only by comparing "
+        "against a head hash kept elsewhere"
     )
 
 

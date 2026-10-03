@@ -69,6 +69,14 @@ class StatusTests(unittest.TestCase):
         result = retraction.status(None, data, replay())
         self.assertEqual(result['status'], retraction.UNVERIFIABLE)
 
+    def test_unread_pmc_metadata_blocks_not_retracted(self):
+        # a Crossref leg that answers cannot make up for a PMC leg that never did
+        result = retraction.status(PAPER_DOI, None, lambda url: (503, b'', {}),
+                                   pmc_error='the PMC metadata could not be read')
+        self.assertEqual(result['status'], retraction.UNVERIFIABLE)
+        self.assertEqual([s['source'] for s in result['sources']], ['pmc', 'crossref'])
+        self.assertIn('PMC metadata could not be read', result['reason'])
+
     def test_notice_types(self):
         for kind in ('retraction', 'withdrawal', 'removal', 'Retraction'):
             self.assertEqual(retraction.notice_effect(kind), 'retracted')

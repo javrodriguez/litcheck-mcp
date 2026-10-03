@@ -38,15 +38,20 @@ server = MCPServer(
         + " Use check_quote before you cite a passage: it resolves the identifier, fetches the "
         "paper's pinned open-access text from PubMed Central (md5-verified), looks for the "
         "quote, and reports the paper's licence and retraction status. Only open-access text "
-        "can be checked; anything else comes back NOT_CHECKABLE. Use search_literature and "
-        "citing_papers to look for prior work: every search is recorded, failed ones too, but "
-        "a search can miss papers, so an empty result is not evidence that nothing exists. "
+        "can be checked; anything else, an identifier that was not found included, comes back "
+        "NOT_CHECKABLE (resolved.status and reason say which). Use search_literature and "
+        "citing_papers to look for prior work: every search that is sent is recorded, failed "
+        "ones too, but a search can miss papers, so an empty result is not evidence that "
+        "nothing exists. "
         "Use resolve_identifier to map a DOI, PMID or PMCID to the others, and "
         "retraction_status before relying on a paper. litcheck computes no support verdict: "
         "whether a passage supports, contradicts or is absent from a claim is a judgement for "
         "a person or a named judge, recorded with record_support. verify_log re-walks the "
-        "log's hash chain. A verdict of UNVERIFIABLE means a source could not be read; report "
-        "it as such rather than as a negative."
+        "log's hash chain. A verdict of UNVERIFIABLE means a source could not be read or "
+        "verified, or "
+        "litcheck failed (see reason); report it as such rather than as a negative. "
+        "resolve_identifier's NOT_FOUND for a PMID or PMCID means not in PubMed Central, not "
+        "that the paper does not exist."
     ),
 )
 
@@ -159,8 +164,10 @@ def check_quote(
 def resolve_identifier(identifier: _IDENTIFIER) -> models.ResolvedIds:
     """Map one DOI, PMID or PMCID to the other two, through the PMC ID converter.
 
-    A DOI the converter cannot map is looked up in Europe PMC. NOT_FOUND means neither
-    service knows it as given; UNVERIFIABLE means a service could not be read.
+    The converter knows only articles in PubMed Central; a DOI it cannot map is also looked
+    up in Europe PMC. NOT_FOUND means not in PMC (and, for a DOI, not in Europe PMC either): a
+    PMID or PMCID is not looked up elsewhere, so NOT_FOUND does not mean the paper does not
+    exist. UNVERIFIABLE means a service could not be read.
     """
     data = _run(cli.resolve_identifier, identifier=identifier, transport=transport)
     return _resolved(identifier, data)
@@ -172,7 +179,9 @@ def retraction_status(identifier: _IDENTIFIER) -> models.RetractionResult:
 
     Retraction, withdrawal and removal notices count; corrections do not; an expression of
     concern is reported separately. NOT_RETRACTED_AS_OF needs every consulted source to have
-    answered, and is dated; if a source could not be read the status is UNVERIFIABLE.
+    answered, and is dated; if a source could not be read the status is UNVERIFIABLE. A paper
+    with no copy in the PMC Cloud Service is checked on Crossref alone; `sources` shows which
+    sources answered.
     """
     _, data = _run(cli.retraction_for, identifier=identifier, transport=transport, clock=clock)
     return _retraction(identifier, data)
@@ -242,7 +251,12 @@ def citing_papers(
 
 @server.tool()
 def verify_log() -> models.LogStatus:
-    """Re-walk the log's hash chain and report the first line that does not fit, if any."""
+    """Re-walk the log's hash chain and report the first line that does not fit, if any.
+
+    This catches accidental and naive edits. The hashes are not keyed, so a rewrite that
+    recomputes every later hash, or a cut-off tail, is caught only by comparing head_sha256
+    with a copy kept elsewhere. A log that does not exist yet reports chain_ok false.
+    """
     log = _log_path()
     data = _run(record.verify, path=log)
     return models.LogStatus(

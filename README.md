@@ -44,26 +44,32 @@ is verified. Every output on that page is re-derived from recorded responses by
   only if its bytes match the md5 in PMC's metadata. Matching is exact after a pinned
   normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed whitespace; case
   kept). Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
-  (no open-access text in PMC), `UNVERIFIABLE` (a source could not be read).
+  (no open-access text in PMC, including when the identifier was not found at all; the
+  `resolved` status and the `reason` say which), `UNVERIFIABLE` (a source could not be read or
+  verified, or litcheck itself failed; the `reason` says which).
 - **Only open-access full text can be quote-checked.** Paywalled papers, and author
   manuscripts PMC does not mark as open access, come back `NOT_CHECKABLE`.
 - **Retraction status**, from PMC's `is_retracted` flag and Crossref's notices about the DOI
   (retraction, withdrawal and removal count; corrections do not; an expression of concern is
   reported separately). `NOT_RETRACTED_AS_OF <date>` needs every consulted source to have
-  answered; otherwise the status is `UNVERIFIABLE`.
+  answered; otherwise the status is `UNVERIFIABLE`. PMC's flag is consulted for papers in the
+  PMC Cloud Service (if their metadata cannot be read, that counts as a source that did not
+  answer); a paper with no copy there is checked on Crossref alone, and `sources` shows it.
 - **No support verdict is computed.** Whether a passage supports, contradicts or is absent
   from a claim is recorded only when a person or a named judge gives it (`record_support`).
 - **Searches are recorded, and a search can miss papers.** Europe PMC, LitSense 2.0, PubMed
-  and OpenAlex citations are queried as asked; each query, its parameters, the response's
-  sha256 and the returned ids go into the log, failed searches included. An empty result is
-  a record of one query, not evidence that nothing exists.
+  and OpenAlex citations are queried as asked; each query, its parameters, the sha256 of the
+  search response (for PubMed the esearch response, not the esummary that adds titles) and
+  one id per returned item go into the log. Searches that were sent and failed are recorded
+  too; a request rejected before sending (an empty query, say) is not. An empty result is a
+  record of one query, not evidence that nothing exists.
 
 ## Tools
 
 | Tool | What it does |
 |---|---|
 | `check_quote` | resolve the paper, fetch its pinned open-access text, look for the quote; licence and retraction status alongside |
-| `resolve_identifier` | DOI, PMID or PMCID to the other two (PMC ID converter, Europe PMC fallback for DOIs) |
+| `resolve_identifier` | DOI, PMID or PMCID to the other two (PMC ID converter, Europe PMC fallback for DOIs only: a PMID or PMCID outside PMC comes back `NOT_FOUND`, which does not mean it does not exist) |
 | `retraction_status` | PMC's flag and Crossref's notices, with the date and response hash of each check |
 | `search_literature` | one recorded search on `europe_pmc`, `litsense` or `pubmed` |
 | `citing_papers` | works citing a paper, from OpenAlex, recorded |
@@ -87,8 +93,11 @@ The core is standard-library Python that runs on Python 3.6 or newer, with no in
 
 One JSON object per line: `seq`, a UTC timestamp, the kind (`evidence`, `search`, `annotate`),
 the sha256 of the previous line, its payload, and its own sha256. Nothing in litcheck rewrites
-a line. `verify-log` (or `verify_log`) reports the first line that does not fit; a cut-off
-tail cannot be seen from the file alone, so keep the head hash it prints if that matters.
+a line. `verify-log` (or `verify_log`) reports the first line that does not fit, which catches
+accidental and naive edits. The hashes are not keyed: someone who rewrites a line and
+recomputes every hash after it, or cuts off the tail, leaves a chain that checks out. To
+detect that, keep the head hash `verify-log` prints somewhere else and compare it later.
+A log that does not exist yet is reported as not intact (exit 1, `chain_ok: false`).
 
 | System | Default location |
 |---|---|
@@ -108,8 +117,9 @@ Claude Code, add `-e LITCHECK_CONTACT=you@example.org` before `--`; with Codex,
 
 Rate limits are honoured per host: NCBI E-utilities and the ID converter 3 requests a second
 (no API key), LitSense one a second, Europe PMC 5 a second, OpenAlex and Crossref 10 a second.
-429 and 5xx answers are retried at most twice, with backoff; then the result is
-`UNVERIFIABLE`.
+Answers 429, 500, 502, 503 and 504, and network errors, are retried at most twice, with
+backoff (honouring a `Retry-After` of up to 10 seconds); other answers are not retried. A call
+that still fails makes the result `UNVERIFIABLE`.
 
 ## Tests
 

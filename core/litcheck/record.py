@@ -4,8 +4,9 @@ Every line carries `seq` (1, 2, ...), `ts` (UTC ISO 8601), `kind` (evidence,
 search or annotate), `prev_sha256` (the sha256 of the previous line's bytes,
 newline excluded; 64 zeros for the first line), its payload, and `sha256`
 (of the line's own canonical JSON without that field), so an edit to any
-line, the last included, is detected. Truncating the tail is not detectable
-from the file alone: keep the head hash that `verify` reports if that matters.
+line, the last included, is detected when it is accidental or naive. The
+hashes are not keyed: a rewrite that recomputes every later hash, or a cut-off
+tail, passes `verify`; only a head hash kept elsewhere reveals it.
 
 There is no rewrite function. Annotations record a person's or a named
 judge's support verdict about an earlier line; this module never computes one.
