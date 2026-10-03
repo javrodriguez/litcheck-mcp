@@ -1,0 +1,15 @@
+{
+  "body_sha256": "e9ad0df41d55b40896bcece393c3ceb6ef29947e83ab8cb21e516ba2a1e5d60d",
+  "date": "2026-10-03T23:32:28Z",
+  "headers": {
+    "connection": "close",
+    "content-type": "application/json;charset=UTF-8",
+    "date": "Sat, 03 Oct 2026 23:32:28 GMT",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "origin,access-control-request-method,access-control-request-headers,accept-encoding"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=arteriosclerosis%20large-artery%20elasticity&resultType=lite&format=json&pageSize=25"
+}

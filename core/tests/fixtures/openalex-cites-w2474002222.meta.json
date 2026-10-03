@@ -1,0 +1,33 @@
+{
+  "body_sha256": "dd261d8f9d031743379566fc662043b14309a6d02b9db6ec28d7d11d62c7e137",
+  "date": "2026-10-03T23:33:15Z",
+  "headers": {
+    "access-control-allow-headers": "Accept, Accept-Language, Accept-Encoding, Authorization, Content-Type, X-OpenAlex-UI, X-Impersonate-User",
+    "access-control-allow-methods": "GET, HEAD, POST, PATCH, DELETE, OPTIONS",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "Cache-Control, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Onetime-Remaining, X-RateLimit-Credits-Used, X-RateLimit-Credits-Required, X-RateLimit-Reset, X-RateLimit-Limit-USD, X-RateLimit-Remaining-USD, X-RateLimit-Prepaid-Remaining-USD, X-RateLimit-Cost-USD, X-RateLimit-Cost-Required-USD, Retry-After, Location",
+    "cf-cache-status": "DYNAMIC",
+    "cf-ray": "a44fc03559fa8be8-EWR",
+    "connection": "close",
+    "content-length": "74020",
+    "content-type": "application/json",
+    "date": "Sat, 03 Oct 2026 23:33:15 GMT",
+    "nel": "{\"report_to\":\"heroku-nel\",\"response_headers\":[\"Via\"],\"max_age\":3600,\"success_fraction\":0.01,\"failure_fraction\":0.1}",
+    "report-to": "{\"group\":\"heroku-nel\",\"endpoints\":[{\"url\":\"https://nel.heroku.com/reports?s=Vper0ALNP478aP0sh3%2BwBUXls1%2F1QsBZb%2B9qHX4Exg0%3D\\u0026sid=c46efe9b-d3d2-4a0c-8c76-bfafa16c5add\\u0026ts=1791070395\"}],\"max_age\":3600}",
+    "reporting-endpoints": "heroku-nel=\"https://nel.heroku.com/reports?s=Vper0ALNP478aP0sh3%2BwBUXls1%2F1QsBZb%2B9qHX4Exg0%3D&sid=c46efe9b-d3d2-4a0c-8c76-bfafa16c5add&ts=1791070395\"",
+    "server": "cloudflare",
+    "via": "2.0 heroku-router",
+    "x-ratelimit-cost-usd": "0.0001",
+    "x-ratelimit-credits-used": "1",
+    "x-ratelimit-limit": "1000",
+    "x-ratelimit-limit-usd": "0.1",
+    "x-ratelimit-onetime-remaining": "0",
+    "x-ratelimit-prepaid-remaining-usd": "0",
+    "x-ratelimit-remaining": "997",
+    "x-ratelimit-remaining-usd": "0.0997",
+    "x-ratelimit-reset": "1605"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://api.openalex.org/works?filter=cites:W2474002222&per_page=25"
+}

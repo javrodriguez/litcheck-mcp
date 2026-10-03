@@ -55,7 +55,7 @@ async def test_check_quote_found_and_not_found(replay):
         assert sc["quote_offsets"] == [2275, 2352]
         assert sc["paragraph"] == 10
         assert sc["resolved"]["pmid"] == "27355798"
-        assert sc["retraction"]["status"] == "UNVERIFIABLE"  # Crossref is not recorded
+        assert sc["retraction"]["status"] == "NOT_RETRACTED_AS_OF"  # PMC and Crossref both answer
         pmc = [s for s in sc["retraction"]["sources"] if s["source"] == "pmc"][0]
         assert pmc["retracted"] is False
         assert sc["log_seq"] == 1
@@ -101,8 +101,8 @@ async def test_retraction_status(replay):
         assert sc["identifier"] == "PMC12829825"
         r = await client.call_tool("retraction_status", {"identifier": "PMC10496602"})
         sc = r.structured_content
-        assert sc["status"] == "UNVERIFIABLE"
-        assert "Crossref could not be reached" in sc["reason"]
+        assert sc["status"] == "NOT_RETRACTED_AS_OF"
+        assert [s["source"] for s in sc["sources"]] == ["pmc", "crossref"]
 
 
 async def test_search_literature(replay):

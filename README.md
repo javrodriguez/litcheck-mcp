@@ -61,8 +61,8 @@ is verified. Every output on that page is re-derived from recorded responses by
 - **Retraction status**, from PMC's `is_retracted` flag and Crossref's notices about the DOI
   (the notice records `filter=updates:<doi>` returns: retraction, withdrawal and removal
   count; corrections do not; an expression of concern is reported separately; a retraction
-  recorded only in the paper's own `updated-by` field is not read, and this path has no
-  recorded test yet). `NOT_RETRACTED_AS_OF <date>` means no retraction notice was found in the
+  recorded only in the paper's own `updated-by` field is not read). `NOT_RETRACTED_AS_OF
+  <date>` means no retraction notice was found in the
   sources consulted, as of that date; it needs the identifier to have resolved and every
   consulted source to have answered, otherwise the status is `UNVERIFIABLE`. PMC's flag is
   read for papers PMC lists (if their metadata cannot be read, PMC's copy is missing, or the
@@ -163,9 +163,7 @@ uv run python scripts/check_readme.py                         # README and worke
 
 The core's tests replay responses recorded live by `core/tools/record_fixture.py`; a replay
 refuses any URL it was not given and any body whose sha256 differs from its record.
-`LITCHECK_NETWORK_TESTS=1` runs the live smoke test against the real services. The Europe
-PMC search, Crossref and OpenAlex paths have no recorded responses yet (the recording
-environment could not reach those hosts); their tests are skipped and say so.
+`LITCHECK_NETWORK_TESTS=1` runs the live smoke test against the real services.
 
 ## Credits
 

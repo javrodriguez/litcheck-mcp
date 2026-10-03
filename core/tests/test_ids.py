@@ -2,7 +2,7 @@
 import unittest
 
 from litcheck import ids
-from tests import (NOT_IN_PMC_DOI, PAPER_DOI, PAPER_PMCID, PAPER_PMID, has_fixture, replay)
+from tests import (NOT_IN_PMC_DOI, PAPER_DOI, PAPER_PMCID, PAPER_PMID, replay)
 
 
 class FindTests(unittest.TestCase):
@@ -51,19 +51,15 @@ class ConvertTests(unittest.TestCase):
         self.assertEqual(len([u for u in r.requested if 'idconv' in u]), 1)
         self.assertEqual(results[0]['status'], ids.RESOLVED)
         self.assertEqual(results[0]['pmcid'], PAPER_PMCID)
-        # not in PMC: the Europe PMC fallback is tried and, unrecorded here, cannot answer
-        self.assertIn('europepmc', r.requested[-1])
-        if not has_fixture(ids.epmc_doi_url(NOT_IN_PMC_DOI)):
-            self.assertEqual(results[1]['status'], ids.UNVERIFIABLE)
-            self.assertIn('Identifier not found in PMC', results[1]['reason'])
+        # not in PMC: the recorded Europe PMC fallback answers for it
+        self.assertEqual(r.requested[-1], ids.epmc_doi_url(NOT_IN_PMC_DOI))
+        self.assertEqual(results[1]['source'], 'europe-pmc')
 
-    @unittest.skipUnless(has_fixture(ids.epmc_doi_url(NOT_IN_PMC_DOI)),
-                         'no recorded Europe PMC DOI search (www.ebi.ac.uk was unreachable '
-                         'when fixtures were recorded)')
     def test_doi_not_in_pmc_falls_back_to_europe_pmc(self):
         [result] = ids.convert([('doi', NOT_IN_PMC_DOI)], replay())
         self.assertEqual(result['source'], 'europe-pmc')
-        self.assertIn(result['status'], (ids.RESOLVED, ids.NOT_FOUND))
+        self.assertEqual(result['status'], ids.RESOLVED)
+        self.assertEqual(result['pmid'], '9500320')
         self.assertIsNone(result['pmcid'])
 
     def test_unreachable_fallback_is_unverifiable_with_both_reasons(self):

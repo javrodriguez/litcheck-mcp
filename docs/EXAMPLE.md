@@ -36,9 +36,9 @@ verdict     FOUND
 identifier  PMC10496602
 resolved    pmid 27355798 · pmcid PMC10496602 · doi 10.1590/1516-3180.2016.1344090516
 pmc text    version 1 · licence CC BY · FETCHED · md5 ok · sha256 ec1fd2908965cd8ff65c09e78786448d7f4b17fdb413ab00764fff7a00e235c0
-retraction  UNVERIFIABLE: Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)
+retraction  NOT_RETRACTED_AS_OF 2026-10-03
             pmc: not retracted (checked 2026-10-03T21:32:25Z)
-            crossref: no answer
+            crossref: not retracted (checked 2026-10-03T21:32:25Z)
 quote       FOUND at characters 2275-2352 of the normalised (q1) text, paragraph 10
 log         line 1 of <LOG>
 (exit status 0)
@@ -53,9 +53,9 @@ verdict     NOT_FOUND
 identifier  PMC10496602
 resolved    pmid 27355798 · pmcid PMC10496602 · doi 10.1590/1516-3180.2016.1344090516
 pmc text    version 1 · licence CC BY · FETCHED · md5 ok · sha256 ec1fd2908965cd8ff65c09e78786448d7f4b17fdb413ab00764fff7a00e235c0
-retraction  UNVERIFIABLE: Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)
+retraction  NOT_RETRACTED_AS_OF 2026-10-03
             pmc: not retracted (checked 2026-10-03T21:32:25Z)
-            crossref: no answer
+            crossref: not retracted (checked 2026-10-03T21:32:25Z)
 quote       NOT_FOUND; ignoring case: not found
 log         line 2 of <LOG>
 (exit status 1)
@@ -66,17 +66,16 @@ Both runs appended a line to the log; the chain checks out:
 <!-- output: cli-verify -->
 ```text
 $ ./litcheck verify-log '<LOG>'
-chain intact: 2 lines in <LOG>; head sha256 dcadd9257ca7076f1bf71a04d53bc5310bc18547eb6d386b1db1a10d4a4c2a5b
+chain intact: 2 lines in <LOG>; head sha256 7468ba42a0e8f0b638f49a1bf45804e890220094358ef9a29646483ec29603fd
 (exit status 0)
 ```
 
 ### About the retraction line
 
-PMC's own metadata says the paper is not retracted. The second source, Crossref's notices
-about the DOI, was not recorded: the environment that recorded these fixtures could not reach
-`api.crossref.org`. With one source unread, litcheck does not say "not retracted"; it says
-`UNVERIFIABLE` and names the missing source. Run live, with Crossref reachable, the same
-call can come back `NOT_RETRACTED_AS_OF` with the date of the check.
+PMC's own metadata says the paper is not retracted, and Crossref's notices about the DOI
+(the recorded `filter=updates:` response) list none. Both sources answered, so litcheck says
+`NOT_RETRACTED_AS_OF` with the date of the check, never a bare "not retracted". Had either
+source gone unread, it would say `UNVERIFIABLE` and name the missing source instead.
 
 ## As MCP tool calls
 
@@ -107,10 +106,10 @@ fresh log):
   "license_code": "CC BY",
   "retraction": {
     "identifier": "PMC10496602",
-    "status": "UNVERIFIABLE",
-    "as_of": null,
+    "status": "NOT_RETRACTED_AS_OF",
+    "as_of": "2026-10-03",
     "concern": false,
-    "reason": "Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)",
+    "reason": null,
     "sources": [
       {
         "source": "pmc",
@@ -125,12 +124,12 @@ fresh log):
       {
         "source": "crossref",
         "url": "https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516",
-        "checked_at": null,
-        "response_sha256": null,
-        "retracted": null,
+        "checked_at": "2026-10-03T21:32:25Z",
+        "response_sha256": "6ec0a900b362c5149fd8a58cf16525b414923941dd1284fb1f8083a4e7d54c97",
+        "retracted": false,
         "concern": false,
         "notices": [],
-        "error": "Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)"
+        "error": null
       }
     ]
   },
@@ -171,10 +170,10 @@ fresh log):
   "license_code": "CC BY",
   "retraction": {
     "identifier": "PMC10496602",
-    "status": "UNVERIFIABLE",
-    "as_of": null,
+    "status": "NOT_RETRACTED_AS_OF",
+    "as_of": "2026-10-03",
     "concern": false,
-    "reason": "Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)",
+    "reason": null,
     "sources": [
       {
         "source": "pmc",
@@ -189,12 +188,12 @@ fresh log):
       {
         "source": "crossref",
         "url": "https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516",
-        "checked_at": null,
-        "response_sha256": null,
-        "retracted": null,
+        "checked_at": "2026-10-03T21:32:25Z",
+        "response_sha256": "6ec0a900b362c5149fd8a58cf16525b414923941dd1284fb1f8083a4e7d54c97",
+        "retracted": false,
         "concern": false,
         "notices": [],
-        "error": "Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)"
+        "error": null
       }
     ]
   },
@@ -213,10 +212,10 @@ fresh log):
 > retraction_status({"identifier": "PMC10496602"})
 {
   "identifier": "PMC10496602",
-  "status": "UNVERIFIABLE",
-  "as_of": null,
+  "status": "NOT_RETRACTED_AS_OF",
+  "as_of": "2026-10-03",
   "concern": false,
-  "reason": "Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)",
+  "reason": null,
   "sources": [
     {
       "source": "pmc",
@@ -231,12 +230,12 @@ fresh log):
     {
       "source": "crossref",
       "url": "https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516",
-      "checked_at": null,
-      "response_sha256": null,
-      "retracted": null,
+      "checked_at": "2026-10-03T21:32:25Z",
+      "response_sha256": "6ec0a900b362c5149fd8a58cf16525b414923941dd1284fb1f8083a4e7d54c97",
+      "retracted": false,
       "concern": false,
       "notices": [],
-      "error": "Crossref could not be reached (no recorded response for https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516)"
+      "error": null
     }
   ]
 }
@@ -251,7 +250,7 @@ fresh log):
   "chain_ok": true,
   "first_bad_seq": null,
   "reason": null,
-  "head_sha256": "f6ad1598821d94e3519ecfda27cd024a690e313eb7c45f497a8ee3ea59f68346"
+  "head_sha256": "185fbdb4fa9e8d00f2fdde1938e76656fb1973ddfac1df89814dd665a37c936b"
 }
 ```
 

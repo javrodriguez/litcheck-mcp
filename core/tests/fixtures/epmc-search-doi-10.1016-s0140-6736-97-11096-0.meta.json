@@ -1,0 +1,15 @@
+{
+  "body_sha256": "bd5919bc1aa45266351ca1542352e3c4414e20511430486de9c2d5a69200fee1",
+  "date": "2026-10-03T23:32:28Z",
+  "headers": {
+    "connection": "close",
+    "content-type": "application/json;charset=UTF-8",
+    "date": "Sat, 03 Oct 2026 23:32:28 GMT",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "transfer-encoding": "chunked",
+    "vary": "origin,access-control-request-method,access-control-request-headers,accept-encoding"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1016/s0140-6736%2897%2911096-0%22&resultType=lite&format=json&pageSize=1"
+}

@@ -2,10 +2,14 @@
 import unittest
 
 from litcheck import pmc, retraction
-from tests import (FIXTURE_DAY, PAPER_DOI, PAPER_PMCID, RETRACTED_PMCID, has_fixture,
-                   pinned_clock, replay)
+from tests import (FIXTURE_DAY, PAPER_DOI, PAPER_PMCID, RETRACTED_PMCID, pinned_clock,
+                   replay)
 
 RETRACTED_DOI = '10.1371/journal.pone.0340378'
+
+
+def unreachable(url):
+    raise OSError('network down')
 
 
 def info(pmcid):
@@ -16,8 +20,8 @@ def info(pmcid):
 
 class StatusTests(unittest.TestCase):
     def test_pmc_flag_alone_is_enough_to_say_retracted(self):
-        # Crossref is unrecorded here, so it cannot answer; PMC's flag still decides
-        result = retraction.status(RETRACTED_DOI, info(RETRACTED_PMCID), replay())
+        # Crossref cannot answer here; PMC's flag still decides
+        result = retraction.status(RETRACTED_DOI, info(RETRACTED_PMCID), unreachable)
         self.assertEqual(result['status'], retraction.RETRACTED)
         sources = dict((s['source'], s) for s in result['sources'])
         self.assertTrue(sources['pmc']['retracted'])
@@ -25,12 +29,18 @@ class StatusTests(unittest.TestCase):
         self.assertEqual(len(sources['pmc']['response_sha256']), 64)
 
     def test_not_retracted_needs_every_source_to_answer(self):
-        if has_fixture(retraction.crossref_updates_url(PAPER_DOI)):
-            self.skipTest('a Crossref response is recorded; covered by the recorded test')
-        result = retraction.status(PAPER_DOI, info(PAPER_PMCID), replay())
+        result = retraction.status(PAPER_DOI, info(PAPER_PMCID), unreachable)
         self.assertEqual(result['status'], retraction.UNVERIFIABLE)
         self.assertIn('Crossref could not be reached', result['reason'])
         self.assertIsNone(result['as_of'])
+
+    def test_recorded_not_retracted_from_both_sources(self):
+        result = retraction.status(PAPER_DOI, info(PAPER_PMCID), replay())
+        self.assertEqual(result['status'], retraction.NOT_RETRACTED_AS_OF)
+        self.assertEqual(result['as_of'], FIXTURE_DAY[:10])
+        self.assertEqual([s['source'] for s in result['sources']], ['pmc', 'crossref'])
+        self.assertIsNone(result['sources'][1]['error'])
+        self.assertFalse(result['sources'][1]['retracted'])
 
     def test_pmc_only_gives_a_dated_answer_from_the_recorded_response(self):
         result = retraction.status(None, info(PAPER_PMCID), replay())
@@ -88,9 +98,6 @@ class StatusTests(unittest.TestCase):
         self.assertEqual(retraction.crossref_updates_url('10.1016/s0140-6736(97)11096-0'),
                          'https://api.crossref.org/v1/works?filter=updates:10.1016/s0140-6736%2897%2911096-0')
 
-    @unittest.skipUnless(has_fixture(retraction.crossref_updates_url(RETRACTED_DOI)),
-                         'no recorded Crossref response (api.crossref.org was unreachable when '
-                         'fixtures were recorded)')
     def test_recorded_crossref_notice(self):
         source = retraction.crossref_source(RETRACTED_DOI, replay())
         self.assertIsNone(source['error'])

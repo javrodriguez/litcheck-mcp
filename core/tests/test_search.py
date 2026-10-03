@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from litcheck import record, search, transport
-from tests import FIXTURES, has_fixture, pinned_clock, replay
+from tests import FIXTURES, pinned_clock, replay
 
 LITSENSE_QUERY = 'arteriosclerosis functional depletion of large-artery elasticity'
 PUBMED_TERM = 'ELSA-Brasil coronary artery calcium'
@@ -115,24 +115,17 @@ class SearchTests(unittest.TestCase):
         for url in seen:
             self.assertEqual(url, transport.strip_contact(url))
 
-    @unittest.skipUnless(has_fixture('https://www.ebi.ac.uk/europepmc/webservices/rest/search'
-                                     '?query=arteriosclerosis%20large-artery%20elasticity'
-                                     '&resultType=lite&format=json&pageSize=25'),
-                         'no recorded Europe PMC search (www.ebi.ac.uk was unreachable when '
-                         'fixtures were recorded)')
     def test_europe_pmc_recorded(self):
         status, items, meta = search.europe_pmc('arteriosclerosis large-artery elasticity',
                                                 transport=replay())
         self.assertEqual(status, search.SEARCHED)
         self.assertGreater(meta['hit_count'], 0)
 
-    @unittest.skipUnless(has_fixture('https://api.openalex.org/works'
-                                     '?filter=cites:W2741809807&per_page=25'),
-                         'no recorded OpenAlex page (api.openalex.org was unreachable when '
-                         'fixtures were recorded)')
     def test_citing_recorded(self):
-        status, items, meta = search.citing('W2741809807', transport=replay())
+        # W2474002222 is the worked example's paper (doi:10.1590/1516-3180.2016.1344090516)
+        status, items, meta = search.citing('W2474002222', transport=replay())
         self.assertEqual(status, search.SEARCHED)
+        self.assertGreater(len(items), 0)
 
 
 if __name__ == '__main__':

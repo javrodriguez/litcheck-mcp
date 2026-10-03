@@ -3,7 +3,8 @@
 Every `<name>.body` here is a response recorded live by `core/tools/record_fixture.py`,
 byte for byte; its `<name>.meta.json` holds the URL, status, date, headers, sha256 and
 provenance. They belong to the services that served them: NCBI (E-utilities, LitSense 2.0,
-the PMC ID Converter) and the PMC Cloud Service.
+the PMC ID Converter), the PMC Cloud Service, Europe PMC (EMBL-EBI), Crossref (including the
+Retraction Watch data it distributes) and OpenAlex (OurResearch; its data is CC0).
 
 `pmc-text-pmc10496602.1.body` is the full text of an article distributed under
 Creative Commons Attribution 4.0 (https://creativecommons.org/licenses/by/4.0/), as its PMC

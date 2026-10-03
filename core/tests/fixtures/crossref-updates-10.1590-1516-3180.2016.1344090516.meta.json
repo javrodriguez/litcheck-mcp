@@ -1,0 +1,22 @@
+{
+  "body_sha256": "6ec0a900b362c5149fd8a58cf16525b414923941dd1284fb1f8083a4e7d54c97",
+  "date": "2026-10-03T23:32:29Z",
+  "headers": {
+    "access-control-allow-headers": "X-Requested-With, Accept, Accept-Encoding, Accept-Charset, Accept-Language, Accept-Ranges, Cache-Control",
+    "access-control-allow-origin": "*",
+    "access-control-expose-headers": "Link",
+    "connection": "close",
+    "content-type": "application/json",
+    "date": "Sat, 03 Oct 2026 23:32:29 GMT",
+    "permissions-policy": "interest-cohort=()",
+    "server": "Jetty(9.4.40.v20210413)",
+    "transfer-encoding": "chunked",
+    "x-api-pool": "public-array",
+    "x-concurrency-limit": "1",
+    "x-rate-limit-interval": "1s",
+    "x-rate-limit-limit": "1"
+  },
+  "provenance": "recorded live 2026-10-03 by core/tools/record_fixture.py",
+  "status": 200,
+  "url": "https://api.crossref.org/v1/works?filter=updates:10.1590/1516-3180.2016.1344090516"
+}
