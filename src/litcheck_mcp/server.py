@@ -118,7 +118,8 @@ def check_quote(
     """Check whether a quoted passage appears in the paper's pinned open-access PMC text.
 
     Also reports the text's version, sha256 and licence, and the paper's retraction status,
-    and appends an evidence line to the log. Exact match after normalisation q1 (Unicode
+    and appends an evidence line to the log. Exact substring match (word boundaries are not
+    checked) after normalisation q1 (Unicode
     NFKC, straight quotes, one dash, collapsed whitespace; case kept). It does not judge
     whether the passage supports the claim.
     """
@@ -181,10 +182,11 @@ def retraction_status(identifier: _IDENTIFIER) -> models.RetractionResult:
     """Is the paper retracted? Reads PMC's is_retracted flag and Crossref's notices.
 
     Retraction, withdrawal and removal notices count; corrections do not; an expression of
-    concern is reported separately. NOT_RETRACTED_AS_OF needs every consulted source to have
-    answered, and is dated; if a source could not be read the status is UNVERIFIABLE. A paper
-    with no copy in the PMC Cloud Service is checked on Crossref alone, and one with no known
-    DOI on PMC's flag alone; `sources` shows which answered. Not written to the log.
+    concern is reported separately. NOT_RETRACTED_AS_OF means no retraction notice was found
+    in the sources consulted, as of its date; it needs the identifier to have resolved and
+    every consulted source to have answered, otherwise the status is UNVERIFIABLE. A paper PMC
+    does not hold is checked on Crossref alone, and one with no known DOI on PMC's flag alone;
+    `sources` shows which answered. For a paper outside PMC, pass its DOI. Not logged.
     """
     _, data = _run(cli.retraction_for, identifier=identifier, transport=transport, clock=clock)
     return _retraction(identifier, data)

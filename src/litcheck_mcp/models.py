@@ -44,7 +44,10 @@ class RetractionSource(BaseModel):
 class RetractionResult(BaseModel):
     identifier: str | None = None
     status: RetractionStatus
-    as_of: str | None = Field(description="Date of the earliest check, for NOT_RETRACTED_AS_OF")
+    as_of: str | None = Field(
+        description="For NOT_RETRACTED_AS_OF: the date of the earliest check; no retraction "
+        "notice was found in the sources consulted as of then"
+    )
     concern: bool = Field(description="An expression of concern is on record")
     reason: str | None
     sources: list[RetractionSource]
@@ -53,7 +56,8 @@ class RetractionResult(BaseModel):
 class EvidenceResult(BaseModel):
     verdict: QuoteVerdict = Field(
         description=(
-            "FOUND: the quote occurs in the pinned open-access text. NOT_FOUND: it does not. "
+            "FOUND: the quote occurs, as a substring, in the pinned open-access text. "
+            "NOT_FOUND: it does not. "
             "TOO_SHORT: under 20 characters, not searched. NOT_CHECKABLE: no open-access text "
             "in PMC, or the identifier was not found (see resolved.status and reason). "
             "UNVERIFIABLE: a source could not be read or verified, or litcheck failed (see "

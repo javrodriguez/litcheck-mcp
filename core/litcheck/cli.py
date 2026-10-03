@@ -76,6 +76,18 @@ def _pmc_error(pmcid, outcome, info):
     return None
 
 
+def _guard(resolved, result):
+    """A clean negative needs a resolved identifier: if no service could place
+    the paper, an empty answer from Crossref says nothing about it."""
+    if result['status'] == _retraction.NOT_RETRACTED_AS_OF and resolved['status'] != _ids.RESOLVED:
+        result['status'] = _retraction.UNVERIFIABLE
+        result['as_of'] = None
+        result['reason'] = ('no retraction notice was found, but the identifier did not resolve '
+                            '(%s: %s), so PMC could not be consulted and an empty answer says '
+                            'nothing' % (resolved['status'], resolved['reason']))
+    return result
+
+
 def retraction_for(identifier, transport=None, clock=None):
     """(resolved, retraction) for an identifier, without fetching any text."""
     resolved = resolve_identifier(identifier, transport)
@@ -87,8 +99,8 @@ def retraction_for(identifier, transport=None, clock=None):
         result = _retraction.status(None, None, transport, clock)
         result['reason'] = 'the identifier could not be resolved: %s' % resolved['reason']
         return resolved, result
-    return resolved, _retraction.status(doi, info, transport, clock,
-                                        _pmc_error(resolved['pmcid'], outcome, info))
+    return resolved, _guard(resolved, _retraction.status(
+        doi, info, transport, clock, _pmc_error(resolved['pmcid'], outcome, info)))
 
 
 def run_check(identifier, quote, claim=None, transport=None, log=None, clock=None):
@@ -134,8 +146,8 @@ def _check(evidence, resolved, quote_text, transport, clock):
         outcome, info, body = _pmc.fetch_text(resolved['pmcid'], None, transport)
         evidence['pmc'] = _pmc_block(outcome, info)
     doi = resolved['doi'] or (info or {}).get('doi')
-    evidence['retraction'] = _retraction.status(doi, info, transport, clock,
-                                                _pmc_error(resolved['pmcid'], outcome, info))
+    evidence['retraction'] = _guard(resolved, _retraction.status(
+        doi, info, transport, clock, _pmc_error(resolved['pmcid'], outcome, info)))
     if resolved['status'] == _ids.UNVERIFIABLE:
         evidence['verdict'] = UNVERIFIABLE
         evidence['reason'] = 'the identifier could not be resolved: %s' % resolved['reason']

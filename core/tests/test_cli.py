@@ -104,6 +104,19 @@ class CheckTests(unittest.TestCase):
         self.assertTrue(any('api.crossref.org' in u and '10.1234/abc' in u for u in asked))
         self.assertEqual([s['source'] for s in result['sources']], ['crossref'])
 
+    def test_no_clean_negative_without_a_resolved_identifier(self):
+        crossref_empty = b'{"status": "ok", "message": {"items": []}}'
+
+        def unknown_doi(url):
+            if 'api.crossref.org' in url:
+                return 200, crossref_empty, {}
+            if 'idconv' in url:
+                return 503, b'', {}
+            return 200, b'{"hitCount": 0, "resultList": {"result": []}}', {}
+        _, result = cli.retraction_for('10.9999/does.not.exist', unknown_doi)
+        self.assertEqual(result['status'], 'UNVERIFIABLE')
+        self.assertIn('did not resolve', result['reason'])
+
     def test_unusable_identifier_exits_two(self):
         code, out = run(['check', '--id', 'twenty-seven', '--quote', TRUE_QUOTE, '--log', self.log])
         self.assertEqual((code, out), (2, ''))

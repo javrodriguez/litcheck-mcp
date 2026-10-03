@@ -6,6 +6,7 @@ import json
 import os
 import shutil
 import tempfile
+import time
 import unittest
 import urllib.error
 
@@ -202,6 +203,24 @@ class ThrottleTests(unittest.TestCase):
         throttle.wait('pmc-oa-opendata.s3.amazonaws.com')
         throttle.wait('pmc-oa-opendata.s3.amazonaws.com')
         self.assertEqual(sleeps, [1.0, 0.34])
+
+    def test_concurrent_callers_queue_up(self):
+        import threading
+        sent, lock = [], threading.Lock()
+        throttle = transport.Throttle(intervals={'h': 0.05})
+
+        def call():
+            throttle.wait('h')
+            with lock:
+                sent.append(time.monotonic())
+        threads = [threading.Thread(target=call) for _ in range(4)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        sent.sort()
+        gaps = [b - a for a, b in zip(sent, sent[1:])]
+        self.assertTrue(all(g >= 0.04 for g in gaps), gaps)
 
     def test_documented_intervals(self):
         self.assertEqual(transport.HOST_INTERVALS['eutils.ncbi.nlm.nih.gov'], 0.34)

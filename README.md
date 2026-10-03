@@ -27,8 +27,9 @@ codex mcp add litcheck -- uv --directory /ABS/PATH/TO/litcheck-mcp run litcheck-
 ```
 
 Replace `/ABS/PATH/TO/litcheck-mcp` with the clone's absolute path. The first launch installs
-the server's dependencies (`mcp`, `pydantic`, and the small development group: pytest, ruff,
-mypy) into the clone's own `.venv`.
+the server's dependencies (`mcp`, `pydantic`, and the small development group: pytest,
+pytest-asyncio, ruff, mypy) into the clone's own `.venv`. The server needs Python 3.12 or 3.13; `uv` fetches one
+if none is installed.
 
 ## Worked example
 
@@ -42,9 +43,10 @@ is verified. Every output on that page is re-derived from recorded responses by
 
 - **Quotes**, against the paper's open-access text from the
   [PMC Cloud Service](https://pmc.ncbi.nlm.nih.gov/tools/cloud/), pinned by version and accepted
-  only if its bytes match the md5 in PMC's metadata. Matching is exact after a pinned
-  normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed whitespace; case
-  kept). Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
+  only if its bytes match the md5 in PMC's metadata. Matching is an exact substring search
+  after a pinned normalisation (`q1`: Unicode NFKC, straight quotes, one dash, collapsed
+  whitespace; case kept); it does not respect word boundaries, so a quote that starts or
+  ends mid-word can still be `FOUND`. Verdicts: `FOUND`, `NOT_FOUND`, `TOO_SHORT` (under 20 characters), `NOT_CHECKABLE`
   (no open-access text to check: none in PMC, PMC's copy missing, or the identifier not
   found at all; the `resolved` status and the `reason` say which; a short quote with no text
   to check is `NOT_CHECKABLE`, not `TOO_SHORT`), `UNVERIFIABLE` (a source could not be read or
@@ -53,12 +55,14 @@ is verified. Every output on that page is re-derived from recorded responses by
   manuscripts PMC does not mark as open access, come back `NOT_CHECKABLE`.
 - **Retraction status**, from PMC's `is_retracted` flag and Crossref's notices about the DOI
   (retraction, withdrawal and removal count; corrections do not; an expression of concern is
-  reported separately). `NOT_RETRACTED_AS_OF <date>` needs every consulted source to have
-  answered; otherwise the status is `UNVERIFIABLE`. PMC's flag is consulted for papers in the
-  PMC Cloud Service (if their metadata cannot be read, that counts as a source that did not
-  answer); a paper with no copy there is checked on Crossref alone, and a paper with no known
-  DOI on PMC's flag alone; `sources` shows which answered. Retraction checks are returned, not
-  logged, except inside a `check_quote` evidence line.
+  reported separately). `NOT_RETRACTED_AS_OF <date>` means no retraction notice was found in
+  the sources consulted, as of that date; it needs the identifier to have resolved and every
+  consulted source to have answered, otherwise the status is `UNVERIFIABLE`. PMC's flag is
+  read for papers PMC lists (if their metadata cannot be read, or PMC's copy is missing, that
+  counts as a source that did not answer); a paper PMC does not hold is checked on Crossref
+  alone, and a paper with no known DOI on PMC's flag alone; `sources` shows which answered.
+  A PMID or PMCID outside PMC has no DOI to ask Crossref about: pass the DOI instead.
+  Retraction checks are returned, not logged, except inside a `check_quote` evidence line.
 - **No support verdict is computed.** Whether a passage supports, contradicts or is absent
   from a claim is recorded only when a person or a named judge gives it (`record_support`).
 - **Searches are recorded, and a search can miss papers.** Europe PMC, LitSense 2.0, PubMed
@@ -82,7 +86,9 @@ is verified. Every output on that page is re-derived from recorded responses by
 
 ## Command line
 
-The core is standard-library Python that runs on Python 3.6 or newer, with no install:
+The core is standard-library Python that runs on Python 3.6 or newer, with no install
+(`./litcheck` is a POSIX shell wrapper; on Windows run `python -m litcheck` with `core` on
+`PYTHONPATH`, and note that appends to the log are not locked there against a second writer):
 
 ```bash
 ./litcheck check --id PMC10496602 --quote "Arteriosclerosis consists of functional depletion of large-artery elasticity."
@@ -102,7 +108,9 @@ accidental and naive edits. The hashes are not keyed: someone who rewrites a lin
 recomputes every hash after it, or cuts off the tail, leaves a chain that checks out. To
 detect that, keep the head hash `verify-log` prints somewhere else; later, the sha256 of
 line N's bytes (without its newline) must still equal the head you saved when the log had N
-lines. litcheck has no command for that comparison yet.
+lines. litcheck has no command for that comparison yet. The chain shows order and
+integrity, not authorship: anyone who can write the file can append well-formed lines, and
+each line's timestamp is the writing machine's clock.
 A log that does not exist yet is reported as not intact (exit 1, `chain_ok: false`).
 
 | System | Default location |
@@ -120,17 +128,19 @@ Set `LITCHECK_LOG` to put it elsewhere (for one project, say); `--log` does the 
 Set `LITCHECK_CONTACT` to an address the services can reach you at. litcheck sends it only
 with each request: in the User-Agent, to every host it calls (the PMC bucket on Amazon S3
 included), and as the `email`/`mailto` parameter NCBI, Europe PMC, Crossref and OpenAlex ask
-for. It is not part of any URL it stores, and it is never written to a recorded fixture; a
-value containing control characters is ignored. With
-Claude Code, add `-e LITCHECK_CONTACT=you@example.org` before `--`; with Codex,
+for. It is not part of any URL litcheck stores, and it is never written to a recorded
+fixture; a value that is not printable ASCII is ignored. With Claude Code, add
+`-e LITCHECK_CONTACT=you@example.org` before `--`; with Codex,
 `--env LITCHECK_CONTACT=you@example.org`.
 
-Rate limits are honoured per host, within one process (separate CLI runs or servers do
-not share the spacing): NCBI E-utilities and the ID converter 3 requests a second
-(no API key), LitSense one a second, Europe PMC 5 a second, OpenAlex and Crossref 10 a second.
-Answers 429, 500, 502, 503 and 504, and network errors, are retried at most twice, with
-backoff (honouring a `Retry-After` in seconds, up to 10); other answers are not retried. A call
-that still fails makes the result `UNVERIFIABLE`.
+Rate limits are honoured per host within one process, concurrent tool calls included
+(separate CLI runs or servers do not share the spacing): NCBI E-utilities and the ID
+converter 3 requests a second (no API key), LitSense one a second, Europe PMC 5 a second,
+OpenAlex and Crossref 10 a second. Answers 429, 500, 502, 503 and 504, and network errors,
+are retried at most twice, with backoff (honouring a `Retry-After` in seconds, up to 10);
+other answers are not retried. A call that still fails makes the result `UNVERIFIABLE`, with
+one exception: when PubMed's esearch answers but the esummary that adds titles fails, the
+search is `SEARCHED` with ids only and a reason saying the titles are missing.
 
 ## Tests
 

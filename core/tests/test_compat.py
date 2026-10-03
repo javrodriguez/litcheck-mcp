@@ -17,7 +17,7 @@ TOOLS = os.path.join(CORE, 'tools')
 # Top-level modules the core may import. Anything else is a dependency.
 STDLIB = {
     'argparse', 'datetime', 'email', 'fcntl', 'hashlib', 'json', 'ntpath', 'os', 're', 'sys',
-    'time', 'unicodedata', 'urllib',
+    'threading', 'time', 'unicodedata', 'urllib',
 }
 BANNED_MODULES = {'dataclasses', 'typing', 'contextvars', 'zoneinfo', 'graphlib', 'tomllib'}
 BANNED_CALLS = {'removeprefix', 'removesuffix', 'isascii', 'fromisoformat'}

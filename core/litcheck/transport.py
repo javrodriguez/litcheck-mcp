@@ -14,6 +14,7 @@ import email.utils
 import hashlib
 import json
 import os
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -58,26 +59,30 @@ class Throttle(object):
         self.clock = clock or time.monotonic
         self.sleep = sleep or time.sleep
         self.last = {}
+        self.lock = threading.Lock()
 
     def wait(self, host):
+        """Reserve the host's next free slot under a lock, then sleep until it, so
+        concurrent callers (the MCP server runs tools in worker threads) queue up."""
         interval = self.intervals.get(host, 0.0)
-        previous = self.last.get(host)
-        if previous is not None and interval > 0:
-            remaining = interval - (self.clock() - previous)
-            if remaining > 0:
-                self.sleep(remaining)
-        self.last[host] = self.clock()
+        with self.lock:
+            now = self.clock()
+            previous = self.last.get(host)
+            slot = now if previous is None else max(now, previous + interval)
+            self.last[host] = slot
+        if slot > now:
+            self.sleep(slot - now)
 
 
 THROTTLE = Throttle()
 
 
 def contact():
-    """LITCHECK_CONTACT, or None. A value with control characters is ignored,
-    since it would be rejected as a header and echoed in the error."""
+    """LITCHECK_CONTACT, or None. A value that is not printable ASCII is ignored,
+    since a header could not carry it and the error would echo it."""
     value = os.environ.get(CONTACT_ENV, '').strip()
-    if any(ord(c) < 32 or ord(c) == 127 for c in value):
-        return None
+    if any(ord(c) < 32 or ord(c) >= 127 for c in value):
+        return None  # control characters, or anything an HTTP header cannot carry
     return value or None
 
 
