@@ -1,0 +1,25 @@
+# Secret-hygiene ignores: reduce accidental staging of secret-NAMED files.
+# This does not catch a secret pasted into a tracked file - use a scanner for that.
+.env*
+*.pem
+*.key
+*credentials*
+client_secret*.json
+*token*.json
+.mcp.json
+*.mcp.json
+.mcp.local.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+dist/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+.planning/
+STATE.md
+CLAUDE.md
+AGENTS.md
