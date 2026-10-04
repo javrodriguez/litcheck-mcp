@@ -218,3 +218,55 @@ async def test_real_stdio_subprocess_roundtrip(tmp_path):
         r = await client.call_tool("verify_log", {})
         assert r.structured_content["chain_ok"] is False  # no log written yet
         assert r.structured_content["lines"] == 0
+
+
+RETRACTED_RULE = (
+    "Treat a FOUND quote in a paper whose retraction status is RETRACTED as unusable "
+    "support: the passage is in the text, but the paper cannot back a claim."
+)
+
+
+async def test_found_in_a_retracted_paper_carries_the_retraction(replay, monkeypatch):
+    """The agent sees FOUND and RETRACTED together, and is told what that pair means."""
+    from litcheck_mcp import server as module
+
+    recorded = module.transport
+    meta_url = "https://pmc-oa-opendata.s3.amazonaws.com/PMC10496602.1/PMC10496602.1.json"
+    flipped = []
+
+    def flagged(url):
+        status, body, headers = recorded(url)
+        if url == meta_url:
+            assert b'"is_retracted": false' in body
+            body = body.replace(b'"is_retracted": false', b'"is_retracted": true')
+            flipped.append(url)
+        return status, body, headers
+
+    monkeypatch.setattr(module, "transport", flagged)
+    async with Client(server, raise_exceptions=True) as client:
+        sc = (
+            await client.call_tool(
+                "check_quote", {"identifier": "PMC10496602", "quote": TRUE_QUOTE}
+            )
+        ).structured_content
+    assert flipped == [meta_url]
+    assert (sc["verdict"], sc["retraction"]["status"]) == ("FOUND", "RETRACTED")
+    assert RETRACTED_RULE in " ".join((server.instructions or "").split())
+
+
+async def test_every_as_of_description_says_utc():
+    async with Client(server, raise_exceptions=True) as client:
+        tools = (await client.list_tools()).tools
+    texts = {f"tool {t.name}": t.description or "" for t in tools}
+    for t in tools:
+        for name, prop in (t.output_schema or {}).get("properties", {}).items():
+            texts[f"tool {t.name} -> {name}"] = prop.get("description", "")
+        for name, sub in (t.output_schema or {}).get("$defs", {}).items():
+            for field, prop in sub.get("properties", {}).items():
+                texts[f"tool {t.name} $defs {name}.{field}"] = prop.get("description", "")
+    texts["server instructions"] = server.instructions or ""
+    hits = {k: v for k, v in texts.items() if "as of" in " ".join(v.split())}
+    assert "tool retraction_status" in hits
+    assert any("as_of" in k for k in hits), sorted(hits)
+    for where, text in hits.items():
+        assert "UTC" in text, f"{where} says 'as of' without saying the date is UTC"

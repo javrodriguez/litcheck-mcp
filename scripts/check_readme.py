@@ -7,6 +7,9 @@
 2. Every output block in docs/EXAMPLE.md equals what the code produces from the
    recorded fixtures, with the clock pinned to the fixtures' recorded date and the
    log path shown as <LOG>. The page is re-derived, not typed.
+3. Two README sentences are bound to the code: `as_of` is a UTC date (checked on
+   the recorded responses' own Date headers, no clock pinned), and `check`'s exit
+   status for FOUND is 0, or 3 when the paper's retraction status is RETRACTED.
 
     uv run python scripts/check_readme.py          # check
     uv run python scripts/check_readme.py --write  # re-derive docs/EXAMPLE.md's blocks
@@ -68,6 +71,41 @@ def check_install_lines() -> list[int]:
         )
         positions.append(words)
     return positions
+
+
+AS_OF_SENTENCE = "as of that date (a UTC date: the day of the earliest check)"
+EXIT_SENTENCES = (
+    "`check` exits 0 only for `FOUND` in a paper whose retraction status is not `RETRACTED`, "
+    "3 for `FOUND` in a paper whose retraction status is `RETRACTED`",
+    "A retraction status of `UNVERIFIABLE` is not `RETRACTED`, so a `FOUND` with it still exits 0",
+)
+UTC_STAMP = re.compile(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ")
+
+
+def _flat(text: str) -> str:
+    return " ".join(text.split())
+
+
+def check_documented_facts() -> None:
+    readme = _flat(readme_text())
+    _, result = cli.retraction_for(PMCID, ReplayTransport(FIXTURES))
+    stamps = [s["checked_at"] for s in result["sources"]]
+    assert result["status"] == "NOT_RETRACTED_AS_OF" and stamps, result
+    assert all(UTC_STAMP.fullmatch(t) for t in stamps), f"checked_at not UTC: {stamps}"
+    assert result["as_of"] == min(stamps)[:10], (result["as_of"], stamps)
+    assert AS_OF_SENTENCE in readme, "README does not say the as_of date is UTC"
+    for verdict, status, code in (
+        ("FOUND", "NOT_RETRACTED_AS_OF", 0),
+        ("FOUND", "UNVERIFIABLE", 0),
+        ("FOUND", "RETRACTED", 3),
+        ("NOT_FOUND", "RETRACTED", 1),
+        ("UNVERIFIABLE", None, 1),
+    ):
+        evidence = {"verdict": verdict, "retraction": status and {"status": status}}
+        got = cli.check_exit_status(evidence)
+        assert got == code, f"check exits {got} for {verdict}/{status}; the README says {code}"
+    for sentence in EXIT_SENTENCES:
+        assert sentence in readme, f"README lost its exit-status sentence: {sentence!r}"
 
 
 def _cli_block(argv: list[str], log: str, replay: ReplayTransport) -> str:
@@ -139,11 +177,12 @@ def check_example(write: bool = False) -> int:
 def main() -> None:
     write = "--write" in sys.argv[1:]
     positions = check_install_lines()
+    check_documented_facts()
     count = check_example(write=write)
     verb = "re-derived" if write else "match the code"
     print(
         f"README ok: install lines at words {positions} (limit {WORD_LIMIT}) match examples/; "
-        f"docs/EXAMPLE.md: {count} output blocks {verb}"
+        f"docs/EXAMPLE.md: {count} output blocks {verb}; as_of (UTC) and exit statuses bound"
     )
 
 

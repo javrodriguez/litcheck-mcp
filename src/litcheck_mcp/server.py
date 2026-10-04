@@ -43,6 +43,8 @@ server = MCPServer(
         "verified comes back UNVERIFIABLE (resolved.status and reason say which). The text "
         "searched includes the article's metadata header and reference list: check the "
         "paragraph before saying the paper itself states a FOUND passage. "
+        "Treat a FOUND quote in a paper whose retraction status is RETRACTED as unusable "
+        "support: the passage is in the text, but the paper cannot back a claim. "
         "Use search_literature and "
         "citing_papers to look for prior work: every search that is sent is recorded, failed "
         "ones too, but a search can miss papers, so an empty result is not evidence that "
@@ -189,8 +191,9 @@ def retraction_status(identifier: _IDENTIFIER) -> models.RetractionResult:
 
     Retraction, withdrawal and removal notices count; corrections do not; an expression of
     concern is reported separately. NOT_RETRACTED_AS_OF means no retraction notice was found
-    in the sources consulted, as of its date; it needs the identifier to have resolved and
-    every consulted source to have answered, otherwise the status is UNVERIFIABLE. A paper PMC
+    in the sources consulted, as of its date (`as_of`, a UTC date); it needs the identifier to
+    have resolved and every consulted source to have answered, otherwise the status is
+    UNVERIFIABLE. A paper PMC
     does not hold is checked on Crossref alone, and one with no known DOI on PMC's flag alone;
     `sources` shows which answered. For a paper outside PMC, pass its DOI. Not logged.
     """

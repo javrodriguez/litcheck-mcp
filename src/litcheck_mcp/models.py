@@ -45,8 +45,8 @@ class RetractionResult(BaseModel):
     identifier: str | None = None
     status: RetractionStatus
     as_of: str | None = Field(
-        description="For NOT_RETRACTED_AS_OF: the date of the earliest check; no retraction "
-        "notice was found in the sources consulted as of then"
+        description="For NOT_RETRACTED_AS_OF: the UTC date (YYYY-MM-DD) of the earliest check; "
+        "no retraction notice was found in the sources consulted as of then"
     )
     concern: bool = Field(description="An expression of concern is on record")
     reason: str | None

@@ -5,10 +5,12 @@
     litcheck verify-log [<PATH>]
     litcheck annotate --seq <N> --support {supports|contradicts|absent} --by <NAME> [--log <PATH>]
 
-Exit status: 0 only for FOUND (check), SEARCHED (search), an intact chain
-(verify-log) and a recorded annotation; 1 for every other verdict; 2 for a
-request that could not be understood. `check` never raises: a failure,
-including a bug in litcheck, becomes UNVERIFIABLE with its reason.
+Exit status: 0 only for FOUND in a paper whose retraction status is not
+RETRACTED (check), SEARCHED (search), an intact chain (verify-log) and a
+recorded annotation; 3 for FOUND in a paper whose retraction status is
+RETRACTED (check); 1 for every other verdict; 2 for a request that could not
+be understood or a damaged log. `check` never raises: a failure, including a bug in litcheck,
+becomes UNVERIFIABLE with its reason.
 """
 import argparse
 import json
@@ -329,6 +331,14 @@ def format_search(result, log_label):
     return '\n'.join(lines)
 
 
+def check_exit_status(evidence):
+    """0 for FOUND, 3 for FOUND in a RETRACTED paper, 1 for every other verdict."""
+    if evidence['verdict'] != FOUND:
+        return 1
+    retraction = evidence['retraction'] or {}
+    return 3 if retraction.get('status') == _retraction.RETRACTED else 0
+
+
 def _log_path(value):
     return value or _paths.default_log_path()
 
@@ -348,7 +358,7 @@ def main(argv=None, transport=None, clock=None, out=None, log_label=None):
                 say(json.dumps(evidence, indent=2, sort_keys=True, ensure_ascii=False))
             else:
                 say(format_check(evidence, log_label or log))
-            return 0 if evidence['verdict'] == FOUND else 1
+            return check_exit_status(evidence)
         if args.command == 'search':
             log = _log_path(args.log)
             result = run_search(ENGINES[args.engine],

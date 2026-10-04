@@ -80,6 +80,50 @@ class CheckTests(unittest.TestCase):
         self.assertEqual(evidence['verdict'], 'UNVERIFIABLE')
         self.assertEqual(code, 1)
 
+    def _flagged_retracted(self):
+        """The worked example's fixtures, with PMC's metadata saying it is retracted."""
+        r = replay()
+        meta_url = 'https://pmc-oa-opendata.s3.amazonaws.com/PMC10496602.1/PMC10496602.1.json'
+        flipped = []
+
+        def transport(url):
+            status, body, headers = r(url)
+            if url == meta_url:
+                self.assertIn(b'"is_retracted": false', body)
+                body = body.replace(b'"is_retracted": false', b'"is_retracted": true')
+                flipped.append(url)
+            return status, body, headers
+        return transport, flipped
+
+    def test_found_in_a_retracted_paper_exits_three(self):
+        transport, flipped = self._flagged_retracted()
+        code, out = run(['check', '--id', PAPER_PMCID, '--quote', TRUE_QUOTE, '--log', self.log,
+                         '--json'], transport)
+        self.assertEqual(flipped, ['https://pmc-oa-opendata.s3.amazonaws.com/PMC10496602.1/'
+                                   'PMC10496602.1.json'])
+        evidence = json.loads(out)
+        self.assertEqual((evidence['verdict'], evidence['retraction']['status']),
+                         ('FOUND', 'RETRACTED'))
+        self.assertEqual(code, 3)
+
+    def test_not_found_in_a_retracted_paper_still_exits_one(self):
+        transport, flipped = self._flagged_retracted()
+        code, out = run(['check', '--id', PAPER_PMCID, '--quote', CHANGED_QUOTE, '--log',
+                         self.log, '--json'], transport)
+        self.assertTrue(flipped)
+        evidence = json.loads(out)
+        self.assertEqual((evidence['verdict'], evidence['retraction']['status']),
+                         ('NOT_FOUND', 'RETRACTED'))
+        self.assertEqual(code, 1)
+
+    def test_found_and_not_retracted_exits_zero(self):
+        code, out = run(['check', '--id', PAPER_PMCID, '--quote', TRUE_QUOTE, '--log', self.log,
+                         '--json'])
+        evidence = json.loads(out)
+        self.assertEqual((evidence['verdict'], evidence['retraction']['status']),
+                         ('FOUND', 'NOT_RETRACTED_AS_OF'))
+        self.assertEqual(code, 0)
+
     def test_unreadable_pmc_bucket_is_never_not_retracted(self):
         r = replay()
 

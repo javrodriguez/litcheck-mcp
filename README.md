@@ -63,7 +63,7 @@ is verified. Every output on that page is re-derived from recorded responses by
   count; corrections do not; an expression of concern is reported separately; a retraction
   recorded only in the paper's own `updated-by` field is not read). `NOT_RETRACTED_AS_OF
   <date>` means no retraction notice was found in the
-  sources consulted, as of that date; it needs the identifier to have resolved and every
+  sources consulted, as of that date (a UTC date: the day of the earliest check); it needs the identifier to have resolved and every
   consulted source to have answered, otherwise the status is `UNVERIFIABLE`. PMC's flag is
   read for papers PMC lists (if their metadata cannot be read, PMC's copy is missing, or the
   PMC Cloud Service holds no copy of a paper PMC lists, that counts as a source that did not
@@ -106,7 +106,13 @@ concurrent calls to the MCP server on Windows, can break the chain):
 ./litcheck annotate --seq 1 --support supports --by "your name"
 ```
 
-`check` exits 0 only for `FOUND`; `verify-log` exits 0 only for an intact chain.
+`check` exits 0 only for `FOUND` in a paper whose retraction status is not `RETRACTED`, 3 for
+`FOUND` in a paper whose retraction status is `RETRACTED` (the passage is in the text, but the
+paper cannot back a claim), 1 for every other verdict, and 2 for an unusable request (an
+unusable identifier or quote) or a damaged log.
+A retraction status of `UNVERIFIABLE` is not `RETRACTED`, so a `FOUND` with it still exits 0:
+read the retraction line before relying on the paper.
+`verify-log` exits 0 only for an intact chain.
 
 ## The log
 
