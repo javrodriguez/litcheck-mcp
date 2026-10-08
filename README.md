@@ -39,6 +39,21 @@ comes back `FOUND` with its offsets, the same quote with one word changed comes 
 is verified. Every output on that page is re-derived from recorded responses by
 `scripts/check_readme.py`, so it shows what the code does.
 
+## Does searching help? A small pre-registered test
+
+Before any run, we wrote down ten research hypotheses, each based on one paper's research question, and the rules for scoring. An agent counted as finding the paper only if it listed that paper among its first ten citations.
+We then asked one model (Claude Sonnet 5.5) to find the prior work behind each hypothesis in two ways: with litcheck's search tools (two separate runs) and from memory alone (one run).
+
+| | Search, run 1 | Search, run 2 | Memory only |
+|---|---|---|---|
+| Found the paper, on the 6 hypotheses scored in all three runs | 6 of 6 | 6 of 6 | 0 of 6 |
+| Found the paper, all 10 (a voided run counts as not found) | 7 of 10 | 9 of 10 | 0 of 10 |
+
+Memory alone still reported its search as done or partly done in 8 of its 9 scored answers.
+
+What this does not show: that litcheck beats any other search route, anything about another model, or a precise rate (ten hypotheses is a small sample). It also cannot tell whether memory missed because the model never learned the paper or because the paper is newer than its training data.
+The hypotheses stay sealed so that they can be reused for blind runs, so the per-hypothesis records are not public yet.
+
 ## What it checks, and what it does not
 
 - **Quotes**, against the paper's open-access text from the [PMC Cloud
